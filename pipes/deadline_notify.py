@@ -34,7 +34,7 @@ def load_deadlines_from_seed():
 
     deadlines = []
     for line in lines:
-        # "D-4    2026-03-24 예비창업패키지 신청 마감 *긴급*" 패턴
+        # "D-4    2026-03-24 프로젝트 제출 마감 *긴급*" 패턴
         m = re.match(r'\s*D-(\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)', line)
         if m:
             delta = int(m.group(1))
