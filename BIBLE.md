@@ -530,7 +530,7 @@ SC41 수업 개념은 DX(디지털 트랜스포메이션) 시대 기준.
 - PAI: TELOS 목표 시스템, 3-tier 메모리, Hook
 - COG: 17개 스킬, 자기진화 사이클, 멀티에이전트 호환
 - codex-os: WORKING.md 크래시 버퍼, VoxWatcher, 오버나이트
-- CAO: tmux 멀티에이전트, 3가지 오케스트레이션 패턴
+- CAO: 멀티에이전트, 3가지 오케스트레이션 패턴
 - Claude Code 공식: Agent Teams, Subagents, Skills, Memory
 
 ---

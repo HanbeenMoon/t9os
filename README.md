@@ -14,6 +14,44 @@ Built by a non-developer using philosophical intuition and AI pair programming. 
 
 ---
 
+## Why?
+
+Most productivity tools treat ideas as static items. You create a task, it sits in a list, you check it off. But that is not how thinking actually works. Ideas emerge from tension between incompatible things — a deadline pulling one way, a creative urge pulling another. The interesting stuff happens in the collision.
+
+T9 OS is built around that observation. Instead of "todo → done," it tracks how things come into being: a vague impulse becomes a tension, the tension produces a candidate, the candidate gets worked on, and eventually it stabilizes — or dissolves back into the background. Nothing gets deleted. Everything leaves a trace.
+
+The philosophy (Simondon) gives this a rigorous foundation, but you don't need to read Simondon to use or understand the system. The core idea is simple: **treat your workflow like a living process, not a filing cabinet.**
+
+---
+
+## Quick Look
+
+Here is how an entity moves through the system — say, an idea for a new feature:
+
+```
+1. You mention "maybe we should add calendar sync" in passing
+   → t9_seed captures it as a preindividual entity
+
+2. The system notices it conflicts with an existing deadline
+   → state becomes tension_detected
+
+3. You say "let's do it" — the system generates a plan
+   → state becomes candidate_generated
+
+4. Work begins
+   → state becomes individuating
+
+5. Calendar sync ships
+   → state becomes stabilized
+
+6. Months later, it's superseded by a better approach
+   → state becomes dissolved (sinks into sediment, never deleted)
+```
+
+Each transition is logged. The system knows *why* things changed, not just *that* they changed.
+
+---
+
 ## What it does
 
 T9 OS sits between a human operator ("the designer") and multiple AI agents (Claude Code, Codex, Gemini). The human sets direction. The system handles execution, judgment, and verification autonomously.

@@ -74,3 +74,36 @@ Thumbs.db
 
 # Nested duplicate
 T9OS/
+
+# Personal project ADRs (not T9OS architecture)
+decisions/030-pm3-paper-mill-pipeline.md
+decisions/032-odnar-ontology-engine-pivot.md
+decisions/036-finbot-model-switch-qwen.md
+decisions/043-ssk-cc-full-handover.md
+decisions/047-odnar-supabase-nextjs-mvp.md
+decisions/048-sc41-canvas-lms-automation.md
+decisions/059-cc-as-odnar-cto.md
+decisions/062-trojan-horse-strategy-ssk.md
+
+# ADR index (references excluded personal ADRs)
+decisions/INDEX.md
+
+# Personal telos files
+telos/LEARNED_SSK.md
+telos/PROJECTS.md
+telos/GOALS.md
+
+# Personal pipeline code
+pipes/sc41_cron.py
+pipes/sc41_cron_runner.sh
+
+# Personal artifacts
+artifacts/AT1_*
+artifacts/ISOMORPHISM_*
+artifacts/STRUCTURAL_*
+
+# Other personal/non-public
+QUICKSTART.md
+pipelines/
+deploy/
+.github/workflows/
