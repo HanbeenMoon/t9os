@@ -106,4 +106,3 @@ artifacts/STRUCTURAL_*
 QUICKSTART.md
 pipelines/
 deploy/
-.github/workflows/
