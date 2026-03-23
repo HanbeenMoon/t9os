@@ -154,7 +154,7 @@ schema_version: v0.1
 ## 2.6 G5 (경영). 경영 감시단 (Business Guardian)
 
 ### 역할
-- **담당**: SMD의 생존과 영속성. BM, 현금흐름, 투자, 법인 운영.
+- **담당**: 조직의 생존과 영속성. BM, 현금흐름, 투자, 법인 운영.
 - **도구**: `octo:personas:strategy-analyst` 또는 `octo:personas:finance-analyst`
 - **핵심 원칙**: "철학이 아무리 좋아도 BM 없으면 죽는다."
 

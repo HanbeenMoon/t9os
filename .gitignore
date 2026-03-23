@@ -72,15 +72,15 @@ Thumbs.db
 # Nested duplicate
 T9OS/
 
-# Personal project ADRs (not T9OS architecture)
-decisions/030-pm3-paper-mill-pipeline.md
-decisions/032-odnar-ontology-engine-pivot.md
-decisions/036-finbot-model-switch-qwen.md
-decisions/043-ssk-cc-full-handover.md
-decisions/047-odnar-supabase-nextjs-mvp.md
-decisions/048-sc41-canvas-lms-automation.md
-decisions/059-cc-as-odnar-cto.md
-decisions/062-trojan-horse-strategy-ssk.md
+# Personal project ADRs (excluded)
+decisions/030-*.md
+decisions/032-*.md
+decisions/036-*.md
+decisions/043-*.md
+decisions/047-*.md
+decisions/048-*.md
+decisions/059-*.md
+decisions/062-*.md
 
 # ADR index (references excluded personal ADRs)
 decisions/INDEX.md
