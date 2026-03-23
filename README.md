@@ -1,5 +1,11 @@
 # T9 OS
 
+[![License](https://img.shields.io/github/license/HanbeenMoon/t9os)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10+-blue?logo=python&logoColor=white)](https://python.org)
+[![Status](https://img.shields.io/badge/status-active%20development-brightgreen)]()
+[![Last Commit](https://img.shields.io/github/last-commit/HanbeenMoon/t9os)](https://github.com/HanbeenMoon/t9os/commits/main)
+[![Philosophy](https://img.shields.io/badge/philosophy-Simondon-purple)]()
+
 A personal operating system built on top of Claude Code, grounded in Gilbert Simondon's philosophy of individuation.
 
 T9 OS turns an AI coding assistant into a full life-and-work orchestration layer. It manages tasks, decisions, projects, and knowledge — not through rigid categories, but through a state machine modeled on how things actually come into being.

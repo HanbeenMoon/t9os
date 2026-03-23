@@ -1,0 +1,4 @@
+*.py linguist-language=Python
+*.md linguist-documentation
+*.json linguist-generated
+*.sh linguist-language=Shell
