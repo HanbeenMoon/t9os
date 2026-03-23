@@ -1,0 +1,76 @@
+# T9OS standalone .gitignore
+# For public GitHub release — personal/sensitive data excluded
+
+# Database files (contains personal entity data)
+.t9.db
+.t9_legacy.db
+.t9_snapshot.json
+.t9_v1_backup_*.db
+*.db-journal
+*.db-wal
+*.db-shm
+pipes/.whisper_pipeline.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Personal data directories
+data/conversations/
+data/archive_legacy/
+data/cc_sessions_raw
+data/notion_dump
+data/personal_dump
+data/composes/
+spaces/
+field/
+
+# Runtime / process files
+.t9bot.pid
+.t9bot.lock
+.pipe_status.json
+
+# Logs
+logs/
+*.log
+
+# Generated (reproducible)
+artifacts/viz/
+
+# Personal/business artifacts (not code)
+artifacts/odnar_예창패/
+artifacts/choi_od/
+artifacts/cwc_tokyo_application.txt
+artifacts/transcripts/
+artifacts/anthropic_corp_policy_2026Q1.txt
+artifacts/channels_rc_plan.txt
+artifacts/law_ai_isomorphism_report.txt
+artifacts/ODNAR_*
+artifacts/SSK_*
+artifacts/BIBLE_*
+artifacts/dashboard.html
+
+# Session/memory data
+.claude/
+.session_locks.json
+memory/
+
+# Runtime state
+.t9bot.pid
+.t9bot.lock
+.pipe_status.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Environment / secrets
+.env
+.env.*
+
+# Nested duplicate
+T9OS/
