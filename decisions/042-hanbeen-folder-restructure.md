@@ -6,7 +6,7 @@
 - 이유: 초기에는 dev/, FOR_AI/, FOR_ME/, personal/, resources/ 등 목적이 겹치는 폴더가 난립. Junction link도 혼재. 단일 원칙(용도별 4분할)으로 정리.
 - 대안: 프로젝트별 독립 리포 (컨텍스트 분산), 단일 폴더 (구조 없음), Monorepo+workspace (과도한 설정)
 - 결과: 전수조사 3회 실행(02-21, 02-28, 03-02), 디스크 절감 ~8.2GB, .gitignore 패턴 확립
-- 출처: 20260220_CC_002_222046_seoul_setup_script.txt, 20260221_CC_026_165034_hanbeen_fullscan.txt, commit 99abfc12
+- 출처: 20260220_CC_002_222046_seoul_setup_script.txt, 20260221_CC_026_165034_workspace_fullscan.txt, commit 99abfc12
 
 ## Simondon Mapping
 전개체적 잠재성의 구조화: 무질서한 파일 집합(과포화 용액)에 4분할이라는 씨앗 결정을 도입하여 폴더 구조의 개체화를 촉발.
