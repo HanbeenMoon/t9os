@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.config import (
-    T9, HANBEEN, DB_PATH, GEMINI_KEY, TG_TOKEN, TG_CHAT,
+    T9, WORKSPACE, DB_PATH, GEMINI_KEY, TG_TOKEN, TG_CHAT,
     CANVAS_TOKEN, GOOGLE_CLIENT_ID, GOOGLE_REFRESH_TOKEN,
 )
 from lib.logger import get_all_status, _tg_send_raw
@@ -32,7 +32,7 @@ PIPELINES = [
     {"name": "deadline_notify.py", "path": T9 / "pipes" / "deadline_notify.py", "type": "cron"},
     {"name": "ceo_brief.py", "path": T9 / "pipes" / "t9_ceo_brief.py", "type": "cron"},
     {"name": "calendar_sync.py", "path": T9 / "pipes" / "calendar_sync.py", "type": "cron"},
-    {"name": "sc41_cron.py", "path": T9 / "pipes" / "sc41_cron.py", "type": "cron"},
+    {"name": "coursework_cron.py", "path": T9 / "pipes" / "coursework_cron.py", "type": "cron"},
     {"name": "integrity_check.py", "path": T9 / "pipes" / "integrity_check.py", "type": "check"},
     {"name": "session_lock.py", "path": T9 / "pipes" / "session_lock.py", "type": "lib"},
     {"name": "tg_common.py", "path": T9 / "pipes" / "tg_common.py", "type": "lib"},
@@ -44,7 +44,7 @@ REQUIRED_KEYS = [
     ("TG_TOKEN", TG_TOKEN, "텔레그램 봇"),
     ("TG_CHAT", TG_CHAT, "텔레그램 챗"),
     ("GEMINI_KEY", GEMINI_KEY, "Gemini API (t9_auto, gm_batch)"),
-    ("CANVAS_TOKEN", CANVAS_TOKEN, "Canvas LMS (sc41)"),
+    ("CANVAS_TOKEN", CANVAS_TOKEN, "Canvas LMS (coursework)"),
     ("GOOGLE_CLIENT_ID", GOOGLE_CLIENT_ID, "Google Calendar"),
     ("GOOGLE_REFRESH_TOKEN", GOOGLE_REFRESH_TOKEN, "Google Calendar"),
 ]
@@ -120,7 +120,7 @@ def check_cron() -> list[dict]:
         ("ceo_brief", "ceo_brief"),
         ("t9_auto", "t9_auto"),
         ("calendar_sync", "calendar"),
-        ("sc41_cron", "sc41"),
+        ("coursework_cron", "coursework"),
         ("tidy", "tidy"),
     ]
     for name, pattern in expected_cron:

@@ -4,7 +4,7 @@
 - 상태: 채택됨
 - 결정: 모든 엔티티의 생명주기를 시몽동 개체화 이론 기반 12개 상태(preindividual, impulse, tension_detected, candidate_generated, individuating, stabilized, split, merged, suspended, archived, dissolved, reactivated)와 엄격한 전이 그래프로 관리한다.
 - 이유:
-  - 기존 "할 일 목록" 패러다임(TODO/DOING/DONE)은 입력의 잠재성을 무시한다. 한빈의 입력은 "할 일"이 아니라 "욕구, 긴장, 가능성"이다.
+  - 기존 "할 일 목록" 패러다임(TODO/DOING/DONE)은 입력의 잠재성을 무시한다. 설계자의 입력은 "할 일"이 아니라 "욕구, 긴장, 가능성"이다.
   - 시몽동의 핵심 통찰: 개체가 출발점이 아니라 과정이 원본이고 개체는 부분적 결과물이다. T9 OS의 전개체(preindividual)는 분류되기를 거부하는 잠재성이다.
   - 이접(disparation) 모델링: 양립 불가능한 차원 간 긴장이 해소될 때 상태 전이가 발생한다. `_detect_tension()` 함수가 텍스트에서 대립 키워드쌍(빠르/느리, build/buy, 단순/복잡, 혼자/협업)을 감지한다.
   - split/merged를 통한 재개체화: 하나의 엔티티가 분기되거나 합쳐질 때 새 개체화 사이클이 시작된다.

@@ -8,19 +8,19 @@
 #   cron_runner.sh ceo_brief
 #   cron_runner.sh t9_auto
 #   cron_runner.sh calendar
-#   cron_runner.sh sc41
+#   cron_runner.sh coursework
 #   cron_runner.sh tidy
 #   cron_runner.sh healthcheck
 
 set -euo pipefail
 
-HANBEEN="/mnt/c/Users/winn/HANBEEN"
-T9="${HANBEEN}/T9OS"
+WORKSPACE="${T9OS_WORKSPACE:-/path/to/workspace}"
+T9="${WORKSPACE}/T9OS"
 PIPES="${T9}/pipes"
-LOG_DIR="${HANBEEN}/_ai/logs/cc"
+LOG_DIR="${WORKSPACE}/_ai/logs/cc"
 
 # 환경변수 로드 (백업 — config.py가 이미 파일에서 읽지만 os.environ도 채워줌)
-[ -f "${HANBEEN}/_keys/.env.sh" ] && source "${HANBEEN}/_keys/.env.sh"
+[ -f "${WORKSPACE}/_keys/.env.sh" ] && source "${WORKSPACE}/_keys/.env.sh"
 
 MODE="${1:-help}"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
@@ -38,8 +38,8 @@ case "$MODE" in
     calendar)
         python3 "${PIPES}/calendar_sync.py" >> "${LOG_DIR}/calendar_cron.log" 2>&1
         ;;
-    sc41)
-        python3 "${PIPES}/sc41_cron.py" >> "${LOG_DIR}/sc41_cron.log" 2>&1
+    coursework)
+        python3 "${PIPES}/coursework_cron.py" >> "${LOG_DIR}/coursework_cron.log" 2>&1
         ;;
     tidy)
         python3 "${T9}/t9_seed.py" tidy >> "${LOG_DIR}/tidy_cron.log" 2>&1
@@ -48,7 +48,7 @@ case "$MODE" in
         python3 "${PIPES}/healthcheck.py" --tg >> "${LOG_DIR}/healthcheck_cron.log" 2>&1
         ;;
     *)
-        echo "Usage: $0 {deadline_notify|ceo_brief|t9_auto|calendar|sc41|tidy|healthcheck}"
+        echo "Usage: $0 {deadline_notify|ceo_brief|t9_auto|calendar|coursework|tidy|healthcheck}"
         exit 1
         ;;
 esac

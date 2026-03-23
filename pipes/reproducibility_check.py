@@ -8,7 +8,7 @@ import re
 import sys
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # T9OS/
-ROOT = os.path.dirname(BASE)  # HANBEEN/
+ROOT = os.path.dirname(BASE)  # WORKSPACE/
 CLAUDE_MD = os.path.join(ROOT, "CLAUDE.md")
 PIPES_DIR = os.path.join(BASE, "pipes")
 LIB_DIR = os.path.join(BASE, "lib")

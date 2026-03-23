@@ -4,7 +4,7 @@ import json, urllib.request, urllib.parse, sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from lib.config import TG_TOKEN, TG_CHAT, T9, HANBEEN
+from lib.config import TG_TOKEN, TG_CHAT, T9, WORKSPACE
 
 TOKEN = TG_TOKEN
 CHAT_ID = TG_CHAT
@@ -49,7 +49,7 @@ def tg_download_file(file_id):
         file_path = file_info["result"]["file_path"]
         ext = Path(file_path).suffix or ".ogg"
         local_name = f"{datetime.now():%Y%m%d_%H%M%S}_voice{ext}"
-        rec_dir = HANBEEN / "PERSONAL" / "recordings"
+        rec_dir = WORKSPACE / "PERSONAL" / "recordings"
         rec_dir.mkdir(parents=True, exist_ok=True)
         local_path = rec_dir / local_name
         url = f"https://api.telegram.org/file/bot{TOKEN}/{file_path}"

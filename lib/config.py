@@ -4,25 +4,25 @@
 중복 로드 코드를 각 파이프라인에 두지 않는다.
 
 사용법:
-    from lib.config import GEMINI_KEY, TG_TOKEN, TG_CHAT, HANBEEN, T9, DB_PATH
+    from lib.config import GEMINI_KEY, TG_TOKEN, TG_CHAT, WORKSPACE, T9, DB_PATH
 """
 import os
 from pathlib import Path
 
 # ─── 경로 상수 ────────────────────────────────────────────────
 T9 = Path(__file__).resolve().parent.parent          # T9OS/
-HANBEEN = T9.parent                                   # ~/code/HANBEEN/
+WORKSPACE = T9.parent                                   # ~/code/WORKSPACE/
 DB_PATH = T9 / ".t9.db"
 INBOX_DIR = T9 / "field" / "inbox"
-LOG_DIR = HANBEEN / "_ai" / "logs" / "cc"
+LOG_DIR = WORKSPACE / "_ai" / "logs" / "cc"
 PIPES_DIR = T9 / "pipes"
 
 # ─── 환경변수 로드 (단일 진입점) ──────────────────────────────
 # 우선순위: os.environ > .env.sh > .env.txt > .env.local
 _ENV_FILES = [
-    HANBEEN / "_keys" / ".env.sh",
-    HANBEEN / "_keys" / ".env.txt",
-    HANBEEN / "_legacy" / "PROJECTS" / "t9-dashboard" / ".env.local",
+    WORKSPACE / "_keys" / ".env.sh",
+    WORKSPACE / "_keys" / ".env.txt",
+    WORKSPACE / "_legacy" / "PROJECTS" / "t9-dashboard" / ".env.local",
 ]
 
 _loaded: dict[str, str] = {}

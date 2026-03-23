@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from lib.config import T9, HANBEEN, DB_PATH
+from lib.config import T9, WORKSPACE, DB_PATH
 from lib.logger import pipeline_run
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -24,7 +24,7 @@ def _get_db():
 
 def _get_deadlines():
     """state.md와 seed daily에서 마감일 추출"""
-    state_path = HANBEEN / ".claude" / "state.md"
+    state_path = WORKSPACE / ".claude" / "state.md"
     if not state_path.exists():
         return []
     import re
@@ -33,7 +33,7 @@ def _get_deadlines():
     today = datetime.now().date()
     # D-N 패턴 또는 날짜 패턴 매칭
     for line in content.split("\n"):
-        # "- D-7 2026-03-24 예창패 마감" 패턴
+        # "- D-7 2026-03-24 프로젝트 마감" 패턴
         m = re.search(r'(\d{4}-\d{2}-\d{2})\s+(.+?)(?:\s$)', line)
         if m:
             try:

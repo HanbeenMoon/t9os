@@ -6,7 +6,7 @@
 - 이유: 세션 간 학습이 전파되지 않으면 같은 실수를 반복함. 특히 "규칙 갱신"은 L1/L2/CLAUDE.md/memory 4곳을 동시에 갱신해야 다음 세션이 학습을 물려받음.
 - 대안: 수동 기록 (까먹음), 자동 요약만 (행동 가능하지 않음)
 - 결과: session-end.sh 훅에 자동화, CLAUDE.md 섹션 10에 프로토콜 명시
-- 출처: 20260316_CC_003_041500_T9OS_v02_시몽동개정_FinBot_ODNAR.txt, L1_execution.md
+- 출처: 20260316_CC_003_041500_T9OS_v02_시몽동개정_model-project_project-alpha.txt, L1_execution.md
 
 ## Simondon Mapping
 잔여 전개체성의 보존: 세션이 끝나도 미완의 잠재성(규칙 변경, 관계 발견)이 다음 세션의 개체화 자원으로 남도록 구조화.

@@ -18,8 +18,8 @@ from datetime import datetime
 
 # 경로
 HOME = Path.home()
-PROJECT_DIR = Path("/mnt/c/Users/winn/HANBEEN")
-JSONL_DIR = HOME / ".claude/projects/-mnt-c-Users-winn-HANBEEN"
+PROJECT_DIR = Path(os.environ.get("T9OS_WORKSPACE", str(HOME / "workspace")))
+JSONL_DIR = HOME / ".claude/projects" / PROJECT_DIR.as_posix().replace("/", "-").lstrip("-")
 CONV_DIR = PROJECT_DIR / "T9OS/data/conversations"
 BRIEF_DIR = PROJECT_DIR / ".claude/session-briefs"
 
@@ -127,7 +127,7 @@ def extract_brief(jsonl_path, session_id, date_str=None):
     # 브리프 생성
     with open(brief_file, 'w', encoding='utf-8') as brief:
         brief.write(f"# Session Brief — {timestamp} (auto-recovered)\n\n")
-        brief.write(f"## 한빈 발언 {len(user_msgs)}개\n\n")
+        brief.write(f"## 설계자 발언 {len(user_msgs)}개\n\n")
 
         brief.write(f"## 교정/피드백 {len(corrections)}건\n")
         for c in corrections[-10:]:
@@ -191,13 +191,13 @@ def main():
             total_user += result['user_msgs']
             total_corrections += result['corrections']
             total_decisions += result['decisions']
-            print(f"  [OK] {u['id']} — 한빈 {result['user_msgs']}발언, 교정 {result['corrections']}, 결정 {result['decisions']}")
+            print(f"  [OK] {u['id']} — 설계자 {result['user_msgs']}발언, 교정 {result['corrections']}, 결정 {result['decisions']}")
         except Exception as e:
             fail += 1
             print(f"  [FAIL] {u['id']} — {e}")
 
     print(f"\n[결과] 성공 {ok}, 실패 {fail}")
-    print(f"[총계] 한빈 발언 {total_user}개, 교정 {total_corrections}건, 결정 {total_decisions}건 복구")
+    print(f"[총계] 설계자 발언 {total_user}개, 교정 {total_corrections}건, 결정 {total_decisions}건 복구")
 
 
 if __name__ == '__main__':

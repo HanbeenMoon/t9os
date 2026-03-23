@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from lib.config import GEMINI_KEY, T9, HANBEEN, DB_PATH
+from lib.config import GEMINI_KEY, T9, WORKSPACE, DB_PATH
 from lib.logger import pipeline_run
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -122,7 +122,7 @@ def detect_project_hard(text, filename):
 
 
 # should_archive 제거됨 — G2-B 존재론 감시단 VIOLATION
-# 전개체의 자동 sediment/archive는 L2 위반. 한빈 수동 검토(consolidate)에서만 처리.
+# 전개체의 자동 sediment/archive는 L2 위반. 설계자 수동 검토(consolidate)에서만 처리.
 
 
 # ─── Gemini 소프트 작업 ───

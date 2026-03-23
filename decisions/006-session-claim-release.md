@@ -4,9 +4,9 @@
 - 상태: 채택됨
 - 결정: 멀티 세션 동시 운영 시 프로젝트/파일 단위로 claim/release 잠금을 사용하여 충돌을 방지한다. `.session_locks.json`에 사람이 읽을 수 있는 형태로 상태를 기록한다.
 - 이유:
-  - 한빈은 cc 세션을 여러 개 동시에 운영한다 (최대 3일 장기 세션 + 멀티 세션). 같은 파일을 모르고 건드리는 문제가 현실적으로 발생한다.
+  - 설계자은 cc 세션을 여러 개 동시에 운영한다 (최대 3일 장기 세션 + 멀티 세션). 같은 파일을 모르고 건드리는 문제가 현실적으로 발생한다.
   - L1 절대 규칙: "같은 파일 동시 접근 금지. 병렬 실행 시 작업 겹침 확인 필수."
-  - 프로젝트 단위 claim은 파일 패턴 매핑(`_DEFAULT_PROJECT_PATTERNS`)으로 관련 파일을 일괄 잠금한다. 예: "ODNAR" claim 시 `PROJECTS/ODNAR/*`, `T9OS/artifacts/odnar_*/*` 전체 잠금.
+  - 프로젝트 단위 claim은 파일 패턴 매핑(`_DEFAULT_PROJECT_PATTERNS`)으로 관련 파일을 일괄 잠금한다. 예: "project-alpha" claim 시 `PROJECTS/project-alpha/*`, `T9OS/artifacts/project-alpha_*/*` 전체 잠금.
   - 30분 heartbeat 타임아웃으로 stale 세션 자동 정리한다.
 - 대안:
   - **Git branch 분리**: 머지 충돌 해결 비용이 높고, 같은 branch에서 작업하는 경우 해결 불가 — 보완책으로만 사용.

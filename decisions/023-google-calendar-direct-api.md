@@ -5,7 +5,7 @@
 - 결정: Google Calendar API를 직접 호출하여 Dashboard에 Schedule 섹션을 추가한다. OAuth2 refresh token 방식으로 인증하고, `/api/calendar` 라우트에서 향후 7일간의 일정을 조회한다.
 - 이유:
   - 일정 관리는 T9 OS의 핵심 기능이다. 마감일(Notion DB)과 별개로 시간 기반 일정(수업, 회의 등)을 표시해야 한다.
-  - Google Calendar는 이미 한빈의 주요 일정 관리 도구다. 데이터를 이중 입력하지 않으려면 직접 연동해야 한다.
+  - Google Calendar는 이미 설계자의 주요 일정 관리 도구다. 데이터를 이중 입력하지 않으려면 직접 연동해야 한다.
   - 3rd party 캘린더 서비스(Cal.com 등)는 추가 비용 + 설정 오버헤드 — SRBB 원칙상 Search(기존 Google Calendar)가 먼저다.
   - OAuth2 refresh token은 만료 없이(갱신 가능) 사용 가능하여 서버리스 환경에 적합하다.
 - 대안:

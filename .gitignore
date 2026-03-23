@@ -39,15 +39,12 @@ logs/
 artifacts/viz/
 
 # Personal/business artifacts (not code)
-artifacts/odnar_예창패/
-artifacts/choi_od/
-artifacts/cwc_tokyo_application.txt
+artifacts/project_alpha_*/
+artifacts/project_beta/
+artifacts/external_applications.txt
 artifacts/transcripts/
-artifacts/anthropic_corp_policy_2026Q1.txt
-artifacts/channels_rc_plan.txt
-artifacts/law_ai_isomorphism_report.txt
-artifacts/ODNAR_*
-artifacts/SSK_*
+artifacts/external_docs/*.txt
+artifacts/research_*
 artifacts/BIBLE_*
 artifacts/dashboard.html
 
@@ -76,29 +73,29 @@ Thumbs.db
 T9OS/
 
 # Personal project ADRs (not T9OS architecture)
-decisions/030-pm3-paper-mill-pipeline.md
-decisions/032-odnar-ontology-engine-pivot.md
-decisions/036-finbot-model-switch-qwen.md
-decisions/043-ssk-cc-full-handover.md
-decisions/047-odnar-supabase-nextjs-mvp.md
-decisions/048-sc41-canvas-lms-automation.md
-decisions/059-cc-as-odnar-cto.md
-decisions/062-trojan-horse-strategy-ssk.md
+decisions/030-pipeline-project-paper-mill.md
+decisions/032-project-alpha-ontology-pivot.md
+decisions/036-model-switch-qwen.md
+decisions/043-research-project-handover.md
+decisions/047-project-alpha-supabase-mvp.md
+decisions/048-coursework-canvas-automation.md
+decisions/059-project-alpha-cto-role.md
+decisions/062-research-strategy.md
 
 # ADR index (references excluded personal ADRs)
 decisions/INDEX.md
 
 # Personal telos files
-telos/LEARNED_SSK.md
+telos/LEARNED_RESEARCH.md
 telos/PROJECTS.md
 telos/GOALS.md
 
 # Personal pipeline code
-pipes/sc41_cron.py
-pipes/sc41_cron_runner.sh
+pipes/coursework_cron.py
+pipes/coursework_cron_runner.sh
 
 # Personal artifacts
-artifacts/AT1_*
+artifacts/competition_*
 artifacts/ISOMORPHISM_*
 artifacts/STRUCTURAL_*
 

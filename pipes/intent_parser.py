@@ -26,7 +26,7 @@ from typing import Optional
 # intent_parser.py 는 T9OS/pipes/ 에 위치 → 2단계 상위가 T9OS 루트
 _THIS_FILE = Path(__file__).resolve()
 T9 = _THIS_FILE.parent.parent          # T9OS/
-HANBEEN = T9.parent                   # HANBEEN/
+WORKSPACE = T9.parent                   # WORKSPACE/
 DB_PATH = T9 / ".t9.db"
 
 # ---- 데이터 클래스 --------------------------------------------------------
@@ -51,7 +51,7 @@ class ParsedIntent:
     constraints: list[str]             # 마감/예산/체력 등
     artifact: str                      # 예상 산출물 유형
     urgency: str                       # high/mid/low
-    project: str                       # SSK/ODNAR/T9/...
+    project: str                       # project name
     disparation: Optional[dict] = None # {"dim_a": ..., "dim_b": ...}
     confidence: float = 0.0            # 해석 신뢰도 0~1
     plans: list[Plan] = field(default_factory=list)
@@ -142,7 +142,7 @@ PROJECT_KW = {
     "PROJECT_A": _s("ontology vector embedding database MVP prototype platform"),
     "COURSEWORK": _s("class assignment canvas exam grade recording group semester"),
     "T9":    _s("T9 시몽동 개체화 오케스트레이션 헌법 BIBLE seed t9_seed 파이프라인"),
-    "AT1":   _s("AT1 contest competition"), "TSUM": _s("TSUM finetuning LoRA FinBot T-SUM"),
+    "COMPETITION": _s("contest competition challenge"), "TSUM": _s("TSUM finetuning LoRA model"),
     "PIPELINE": _s("pipeline automation academic"), "LEGACY": _s("legacy watcher queue"),
     "T9D":   _s("T9D dashboard Dashboard Vercel"), "EXTERNAL": _s("external stablecoin reference"),
 }
@@ -165,7 +165,7 @@ OPPOSITION_PAIRS = [
 # 에이전트 배정
 AGENT_RULES = {
     "RESEARCH": "cc", "PROJECT_A": "cc+cx", "COURSEWORK": "cx", "T9": "cc",
-    "AT1": "cc", "TSUM": "cx",
+    "COMPETITION": "cc", "TSUM": "cx",
 }
 
 

@@ -18,7 +18,7 @@ from lib.transduction import find_transductions, format_transduction_report
 from pipes.session_lock import cli_main as session_lock_cli
 
 T9 = Path(__file__).resolve().parent
-HANBEEN = T9.parent
+WORKSPACE = T9.parent
 FIELD, ACTIVE = T9/"field"/"inbox", T9/"spaces"/"active"
 SUSPENDED, ARCHIVED, MEMORY = T9/"spaces"/"suspended", T9/"spaces"/"archived", T9/"memory"
 SEDIMENT = T9/"spaces"/"sediment"  # 침전: 삭제 아닌 가라앉음. 검색 가능, daily 제외
@@ -26,8 +26,8 @@ DB_PATH, LEGACY_DB = T9/".t9.db", T9/".t9_legacy.db"
 
 # 마감일 파일: 여러 경로 fallback
 DEADLINE_CANDIDATES = [
-    HANBEEN/"_notion_dump"/"T9_마감일.txt",
-    HANBEEN/"_legacy"/"_notion_dump"/"T9_마감일.txt",
+    WORKSPACE/"_notion_dump"/"T9_마감일.txt",
+    WORKSPACE/"_legacy"/"_notion_dump"/"T9_마감일.txt",
     T9/"data"/"notion_dump"/"T9_마감일.txt",
     T9/"data"/"_notion_dump"/"T9_마감일.txt",
 ]
@@ -36,11 +36,11 @@ LOGS_DIR, LEARNED_PATH = T9/"logs", T9/"telos"/"LEARNED.md"
 ARTIFACTS = T9/"artifacts"
 IMPULSES = T9/"field"/"impulses"
 CONVERSATIONS = T9/"data"/"conversations"
-SESSION_BRIEFS = HANBEEN/".claude"/"session-briefs"
+SESSION_BRIEFS = WORKSPACE/".claude"/"session-briefs"
 
 DECISIONS = T9/"decisions"
 COMPOSES = T9/"data"/"composes"
-PROJECTS = HANBEEN/"PROJECTS"
+PROJECTS = WORKSPACE/"PROJECTS"
 
 SCAN_DIRS = [FIELD, ACTIVE, SUSPENDED, ARCHIVED, SEDIMENT, MEMORY, ARTIFACTS,
              IMPULSES, T9/"field"/"scraps", T9/"telos", T9/"constitution",
@@ -80,7 +80,7 @@ def _preview_len(filepath, body=None):
 
     s = str(filepath)
 
-    # 세션 대화 = 가장 순수한 전개체. 한빈의 날것 사유.
+    # 세션 대화 = 가장 순수한 전개체. 설계자의 날것 사유.
     if 'conversations' in s:
         # 대화 길이에 비례하되 상한 5000자
         return min(total, max(3000, total // 3))
@@ -391,7 +391,7 @@ def cmd_reindex(incremental=False):
                 rel = str(f.relative_to(T9)) if recurse else f.name
             except ValueError:
                 try:
-                    rel = str(f.relative_to(HANBEEN))
+                    rel = str(f.relative_to(WORKSPACE))
                 except ValueError:
                     rel = f.name
             found.add(rel)
@@ -734,8 +734,8 @@ def cmd_digest_index():
     """다이제스트 파일들을 FTS에 인덱싱"""
     conn = get_db()
     digest_dirs = [
-        HANBEEN / "_legacy" / "_notion_dump" / "digested_final",
-        HANBEEN / "_legacy" / "_personal_dump" / "digested_final",
+        WORKSPACE / "_legacy" / "_notion_dump" / "digested_final",
+        WORKSPACE / "_legacy" / "_personal_dump" / "digested_final",
     ]
     count = 0
     for ddir in digest_dirs:
@@ -785,7 +785,7 @@ def cmd_ingest(filepath):
     for line in text.split(chr(10)):
         line = line.strip()
         if not line or line.startswith('---') or line == 'ㅡ': continue
-        # [문 한빈] [시간] 내용 패턴
+        # [이름] [시간] 내용 패턴
         if '] ' in line:
             parts = line.split('] ', 2)
             if len(parts) >= 3:

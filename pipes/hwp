@@ -6,7 +6,7 @@
 #   hwp input.hwp --pdf        → PDF로 변환
 #   hwp ./folder/ --to docx    → 폴더 일괄 변환
 
-WIN_PYTHON="/mnt/c/Users/winn/AppData/Local/Programs/Python/Python313/python.exe"
+WIN_PYTHON="${WIN_PYTHON:-/mnt/c/Python/python.exe}"
 SCRIPT="$(cd "$(dirname "$0")" && pwd)/hwp_convert.py"
 
 # WSL 경로 → Windows 경로 변환

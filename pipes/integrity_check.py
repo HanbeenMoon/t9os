@@ -30,10 +30,10 @@ CONSTITUTION_DIR = BASE / "constitution"
 DECISIONS_DIR = BASE / "decisions"
 PIPES_DIR = BASE / "pipes"
 
-HANBEEN_ROOT = BASE.parent  # ~/code/HANBEEN/
-CC_LOGS_DIR = HANBEEN_ROOT / "_ai" / "logs" / "cc"
-CX_LOGS_DIR = HANBEEN_ROOT / "_ai" / "logs" / "cx"
-T9D_PUBLIC = HANBEEN_ROOT / "PROJECTS" / "t9-dashboard" / "public"
+WORKSPACE_ROOT = BASE.parent  # ~/code/WORKSPACE/
+CC_LOGS_DIR = WORKSPACE_ROOT / "_ai" / "logs" / "cc"
+CX_LOGS_DIR = WORKSPACE_ROOT / "_ai" / "logs" / "cx"
+T9D_PUBLIC = WORKSPACE_ROOT / "PROJECTS" / "t9-dashboard" / "public"
 
 # Valid Simondon phase transitions (from -> set of valid to)
 VALID_PHASES = [
@@ -83,7 +83,7 @@ PIPELINE_REGISTRY = {
     "calendar_sync.py": "Google Calendar sync",
     "intent_parser.py": "Intent parser (5-axis)",
     "whisper_pipeline.py": "Whisper transcription",
-    "sc41_cron.py": "SC41 automation",
+    "coursework_cron.py": "Coursework automation",
     "reproducibility_check.py": "Reproducibility check",
 }
 

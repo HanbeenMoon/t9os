@@ -134,7 +134,7 @@ Key Simondonian concepts mapped to the system:
 |---------|-------------|----------|
 | **Preindividual** | Supersaturated potential before individuation | `field/inbox/` — raw ideas, impulses, tensions |
 | **Metastability** | Unstable equilibrium loaded with potential | `tension_detected` — something wants to become something |
-| **Disparation** | Tension between incompatible dimensions | "SSK deadline vs ODNAR urge" — the engine of change |
+| **Disparation** | Tension between incompatible dimensions | "research deadline vs startup urge" — the engine of change |
 | **Transduction** | Structure propagating across domains | Pattern from one project becoming principle in another |
 | **Concretization** | Abstract→concrete evolution of technical objects | Tool integration maturity (measured on 4-level scale) |
 | **Associated milieu** | Feedback loop between object and environment | Filesystem + APIs + human intent = living context |

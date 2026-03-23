@@ -4,7 +4,7 @@
 - 상태: 채택됨
 - 결정: 모든 엔티티(전개체, 작업, 산출물)의 상태와 메타데이터를 SQLite 단일 DB(`.t9.db`)에 저장한다. FTS5 가상 테이블로 전문 검색을 지원한다.
 - 이유:
-  - Notion API 의존에서 벗어나기 위해 로컬 우선 저장소가 필요했다. Notion API는 삽질 무한루프(L2U 버그 지옥)의 원인이었다.
+  - Notion API 의존에서 벗어나기 위해 로컬 우선 저장소가 필요했다. Notion API는 삽질 무한루프(legacy-bot 버그 지옥)의 원인이었다.
   - cc/cx/gm 모두 SQLite를 네이티브로 접근 가능하다 (Python stdlib `sqlite3`).
   - WAL 모드(`PRAGMA journal_mode=WAL`)로 다중 세션 동시 읽기를 지원한다.
   - FTS5로 grep 수준의 검색을 DB 레벨에서 제공하여, 별도 인덱스 시스템 Build를 방지한다.

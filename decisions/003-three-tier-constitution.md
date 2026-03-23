@@ -19,7 +19,7 @@
   - `constitution/L1_execution.md`, `L2_interpretation.md`, `L3_amendment.md`에 각각 구현.
   - L1/L2 변경 시 반드시 CLAUDE.md + memory 동시 갱신 (3곳 동시 갱신 원칙).
   - L3 개정 로그에 모든 변경 이력이 기록된다.
-  - 한빈 승인 없이 L1/L2 변경 금지 (L3 규칙).
+  - 설계자 승인 없이 L1/L2 변경 금지 (L3 규칙).
   - 개정 빈도가 주 3회 이상이면 L3 자체를 점검하는 메타 규칙이 존재한다.
 
 ## Simondon Mapping

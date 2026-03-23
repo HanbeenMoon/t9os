@@ -5,7 +5,7 @@
 - 결정: 모든 새 작업 시작 전 반드시 Search -> Reuse -> Buy -> Build 순서를 따른다. Build는 "세상에 없는 것"에만 허용한다.
 - 이유:
   - **12시간 삽질 사건**: Puppeteer -> 프록시 -> Zotero -> SeleniumBase 순서로 12시간 삽질한 끝에, Bright Data를 처음부터 검색했으면 1시간이면 끝날 일이었다.
-  - 한빈의 핵심 철학: "Build는 세상에 없는 것(ODNAR)에만 허용. 반복/자동화는 Buy 우선." (`telos/MODELS.md`)
+  - 설계자의 핵심 철학: "Build는 세상에 없는 것(project-alpha)에만 허용. 반복/자동화는 Buy 우선." (`telos/MODELS.md`)
   - 과적합 방지: 파이프라인 1회 구축에 토큰 과소비하면 다른 프로젝트가 밀린다. 단순 작업에 2시간 이상 소비하면 중단하고 다음 단계로 전환.
   - Buy 소스 5개를 적극 활용한 결과물: PAI(TELOS), COG(스킬), codex-os(WORKING.md, VoxWatcher), CAO(오케스트레이션 패턴), Claude Code 공식(Agent Teams, Skills).
 - 대안:

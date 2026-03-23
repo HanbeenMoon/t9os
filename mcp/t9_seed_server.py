@@ -42,7 +42,7 @@ def run_seed(args: list[str]) -> str:
 # MCP 도구 정의
 TOOLS = {
     "t9_capture": {
-        "description": "전개체 저장. 한빈의 날것 입력을 T9 OS에 등록.",
+        "description": "전개체 저장. 설계자의 날것 입력을 T9 OS에 등록.",
         "inputSchema": {
             "type": "object",
             "properties": {"text": {"type": "string", "description": "저장할 텍스트"}},
