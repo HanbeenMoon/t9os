@@ -121,8 +121,8 @@ def extract_brief(jsonl_path, session_id, date_str=None):
                                 break
                     elif role == 'assistant':
                         assistant_msgs.append(content.strip()[:200])
-            except:
-                pass
+            except Exception:
+                continue
 
     # 브리프 생성
     with open(brief_file, 'w', encoding='utf-8') as brief:

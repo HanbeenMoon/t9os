@@ -21,7 +21,7 @@ def cmd_export_json():
     for r in conn.execute("SELECT id, filepath, filename, phase, metadata, body_preview, urgency, concepts, created_at, updated_at FROM entities ORDER BY updated_at DESC"):
         meta = {}
         try: meta = json.loads(r["metadata"]) if r["metadata"] else {}
-        except: pass
+        except (json.JSONDecodeError, TypeError): pass
         entities.append({
             "id": r["id"], "filepath": r["filepath"], "filename": r["filename"],
             "phase": r["phase"], "urgency": r["urgency"] or meta.get("urgency",""),

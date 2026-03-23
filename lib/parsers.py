@@ -59,7 +59,7 @@ def _parse_md_content(text):
                     val = val.lower() == "true"
                 elif val.replace(".", "").replace("-", "").isdigit():
                     try: val = float(val) if "." in val else int(val)
-                    except: pass
+                    except (ValueError, OverflowError): pass
                 elif val.startswith(("'", '"')) and val.endswith(("'", '"')):
                     val = val[1:-1]
                 meta[key] = val

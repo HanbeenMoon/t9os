@@ -6,9 +6,16 @@ NO "project" field. NO hardcoded classification.
 
 v0.2: DB 보강, disparation, transduction, 동적 compose, digest 인덱싱
 """
-import sys, os, re, sqlite3, json, time, hashlib, shutil
+import sys, os, re, sqlite3, json, time, hashlib, shutil, logging
 from datetime import datetime, timedelta
 from pathlib import Path
+
+logging.basicConfig(
+    format="[%(asctime)s] %(levelname)s: %(message)s",
+    datefmt="%H:%M:%S",
+    level=logging.WARNING,
+)
+_log = logging.getLogger("t9_seed")
 from lib.parsers import parse_file, parse_md, write_md
 from lib.ipc import cli as ipc_cli
 from lib.export import cmd_export_json
@@ -150,7 +157,9 @@ USAGE = """  사용법: python3 t9_seed.py <command> [args]
   done <id>             → stabilized
   go <id>               → individuating
   resurface [keyword]   침전(sediment) 엔티티 발굴 (랜덤 3~5개 또는 키워드 검색)
-  tidy                  주기 정리 (일/수 자동: inbox→active/archived)"""
+  tidy                  주기 정리 (일/수 자동: inbox→active/archived)
+  rebuild-fts           FTS5 검색 인덱스 완전 재구축
+  orphans [--fix]       고아 엔티티 탐지 (파일 없는 DB 레코드). --fix로 sediment 전이"""
 
 # ─── 파일 파싱 ───────────────────────────────────────────────────────────────
 
@@ -184,10 +193,10 @@ def _migrate_db(conn):
     rel_cols = {r[1] for r in conn.execute("PRAGMA table_info(relates)").fetchall()}
     if "direction" not in rel_cols:
         try: conn.execute("ALTER TABLE relates ADD COLUMN direction TEXT DEFAULT 'bidirectional'")
-        except Exception: pass
+        except Exception as e: _log.debug("relates.direction already exists: %s", e)
     if "description" not in rel_cols:
         try: conn.execute("ALTER TABLE relates ADD COLUMN description TEXT")
-        except Exception: pass
+        except Exception as e: _log.debug("relates.description already exists: %s", e)
     conn.commit()
 
 def get_db():
@@ -203,7 +212,7 @@ def get_db():
         id INTEGER PRIMARY KEY, entity_id INTEGER, from_phase TEXT,
         to_phase TEXT, timestamp TEXT, reason TEXT)""")
     try: conn.execute("CREATE VIRTUAL TABLE IF NOT EXISTS entities_fts USING fts5(filename, body_preview, metadata_text)")
-    except Exception: pass
+    except Exception as e: _log.debug("FTS5 table exists or unavailable: %s", e)
     # 마이그레이션: 정규 컬럼 + relates 테이블
     _migrate_db(conn)
     return conn
@@ -224,7 +233,8 @@ def self_check(op="write", meta=None):
         extra = cols - allowed
         if extra: violations.append(f"SCHEMA_VIOLATION: extra columns {extra}")
         conn.close()
-    except Exception: pass
+    except Exception as e:
+        _log.warning("self_check DB access failed: %s", e)
     if violations:
         LOGS_DIR.mkdir(parents=True, exist_ok=True)
         with open(LOGS_DIR/f"self_check_{datetime.now():%Y%m%d}.log", "a") as f:
@@ -301,23 +311,38 @@ def _upsert(conn, rel, fname, phase, meta_json, preview, h, full_body="",
         conn.execute("DELETE FROM entities_fts WHERE rowid=?", (eid,))
         conn.execute("INSERT INTO entities_fts(rowid,filename,body_preview,metadata_text) VALUES(?,?,?,?)",
             (eid, fname, full_body or preview, meta_json))
-    except Exception: pass
+    except Exception as e:
+        _log.debug("FTS upsert failed for %s: %s", fname, e)
     return True
 
-def _index_file(filepath):
-    conn = get_db()
-    rel = str(filepath.relative_to(T9))
-    meta, body = parse_file(filepath)
+def _build_entity_payload(filepath, meta, body):
+    """파일에서 엔티티 페이로드를 구성하는 공통 로직."""
     concepts = extract_concepts(body) if body else []
     urgency = detect_urgency(body) if body else "mid"
     if not meta.get("concepts") and concepts:
         meta["concepts"] = concepts
     if not meta.get("urgency") and urgency != "mid":
         meta["urgency"] = urgency
-    _upsert(conn, rel, filepath.name, meta.get("phase","preindividual"),
-            json.dumps(meta, ensure_ascii=False), body[:_preview_len(filepath, body)], fhash(filepath),
-            full_body=body, urgency=urgency or "mid",
-            concepts=concepts, parent_id=meta.get("parent_id"))
+    return {
+        "fname": filepath.name,
+        "phase": meta.get("phase", "preindividual"),
+        "meta_json": json.dumps(meta, ensure_ascii=False),
+        "preview": body[:_preview_len(filepath, body)],
+        "h": fhash(filepath),
+        "full_body": body,
+        "urgency": urgency or "mid",
+        "concepts": concepts,
+        "parent_id": meta.get("parent_id"),
+    }
+
+def _index_file(filepath):
+    conn = get_db()
+    rel = str(filepath.relative_to(T9))
+    meta, body = parse_file(filepath)
+    p = _build_entity_payload(filepath, meta, body)
+    _upsert(conn, rel, p["fname"], p["phase"], p["meta_json"], p["preview"], p["h"],
+            full_body=p["full_body"], urgency=p["urgency"],
+            concepts=p["concepts"], parent_id=p["parent_id"])
     conn.commit(); conn.close()
 
 # ─── 명령어 ──────────────────────────────────────────────────────────────────
@@ -395,24 +420,22 @@ def cmd_reindex(incremental=False):
                 except ValueError:
                     rel = f.name
             found.add(rel)
-            # 증분 모드: hash 동일하면 스킵 (파싱 절약)
-            if incremental and rel in existing:
-                current_hash = fhash(f)
-                if current_hash == existing[rel]:
-                    skipped += 1
-                    continue
-            meta, body = parse_file(f)
-            concepts = extract_concepts(body) if body else []
-            urgency = detect_urgency(body) if body else "mid"
-            if not meta.get("concepts") and concepts:
-                meta["concepts"] = concepts
-            if not meta.get("urgency") and urgency != "mid":
-                meta["urgency"] = urgency
-            if _upsert(conn, rel, f.name, meta.get("phase","preindividual"),
-                       json.dumps(meta, ensure_ascii=False), body[:_preview_len(f, body)], fhash(f),
-                       full_body=body, urgency=urgency or "mid",
-                       concepts=concepts, parent_id=meta.get("parent_id")):
-                count += 1
+            try:
+                # 증분 모드: hash 동일하면 스킵 (파싱 절약)
+                if incremental and rel in existing:
+                    current_hash = fhash(f)
+                    if current_hash == existing[rel]:
+                        skipped += 1
+                        continue
+                meta, body = parse_file(f)
+                p = _build_entity_payload(f, meta, body)
+                if _upsert(conn, rel, p["fname"], p["phase"], p["meta_json"], p["preview"], p["h"],
+                           full_body=p["full_body"], urgency=p["urgency"],
+                           concepts=p["concepts"], parent_id=p["parent_id"]):
+                    count += 1
+            except (OSError, sqlite3.Error, ValueError, json.JSONDecodeError) as e:
+                _log.warning("reindex skip %s: %s", f.name, e)
+                continue
     for d in set(existing.keys()) - found:
         conn.execute("DELETE FROM entities WHERE filepath=?", (d,)); count += 1
     conn.commit(); conn.close()
@@ -427,7 +450,8 @@ def cmd_search(query):
             "SELECT e.id,e.filename,e.phase,e.metadata,e.urgency,e.concepts "
             "FROM entities_fts f JOIN entities e ON f.rowid=e.id "
             "WHERE entities_fts MATCH ? LIMIT 20", (safe_query,)).fetchall()
-    except Exception:
+    except Exception as e:
+        _log.debug("FTS search failed, falling back to LIKE: %s", e)
         results = []
     if not results:
         results = conn.execute(
@@ -604,7 +628,8 @@ def cmd_consolidate():
                 m2, b2 = parse_md(md)
                 _upsert(conn, f"memory/{md.name}", md.name, m2.get("phase","stabilized"),
                         json.dumps(m2, ensure_ascii=False), b2[:500], fhash(md))
-            except Exception: pass
+            except Exception as e:
+                _log.debug("consolidate parse failed for %s: %s", md.name, e)
     conn.commit(); conn.close()
     print(f"\n  총 {total}건 통합.\n")
 
@@ -709,7 +734,8 @@ def cmd_relate(id1, id2, direction="bidirectional", description=""):
                 "VALUES (?, ?, ?, ?, ?)",
                 (id2, id1, "bidirectional", description, datetime.now().isoformat())
             )
-        except Exception: pass
+        except Exception as e:
+            _log.debug("reverse relate failed: %s", e)
 
     # 기존 metadata의 related_to도 유지 (호환성)
     for eid, other in [(id1,id2),(id2,id1)]:
@@ -838,6 +864,73 @@ def cmd_resurface(keyword=""):
     print("  발굴하려면: python3 t9_seed.py transition <id> reactivated\n")
     conn.close()
 
+def cmd_rebuild_fts():
+    """FTS5 인덱스를 완전 재구축. 검색 결과 누락 시 사용."""
+    conn = get_db()
+    print("  FTS5 인덱스 재구축 시작...")
+    try:
+        conn.execute("DROP TABLE IF EXISTS entities_fts")
+        conn.execute("CREATE VIRTUAL TABLE entities_fts USING fts5(filename, body_preview, metadata_text)")
+    except Exception as e:
+        print(f"  [ERROR] FTS5 테이블 재생성 실패: {e}")
+        conn.close(); return
+    rows = conn.execute("SELECT id, filename, body_preview, metadata FROM entities").fetchall()
+    count = 0
+    for r in rows:
+        try:
+            conn.execute(
+                "INSERT INTO entities_fts(rowid, filename, body_preview, metadata_text) VALUES(?,?,?,?)",
+                (r["id"], r["filename"], r["body_preview"] or "", r["metadata"] or ""))
+            count += 1
+        except Exception as e:
+            _log.debug("FTS rebuild skip [%d] %s: %s", r["id"], r["filename"], e)
+    conn.commit(); conn.close()
+    print(f"  FTS5 재구축 완료: {count}/{len(rows)}건 인덱싱")
+
+def cmd_orphans():
+    """파일이 사라진 고아 엔티티를 찾아 보고. --fix 옵션으로 sediment 전이."""
+    fix = "--fix" in sys.argv
+    conn = get_db()
+    rows = conn.execute("SELECT id, filepath, filename, phase FROM entities WHERE filepath IS NOT NULL AND filepath != ''").fetchall()
+    orphans, corrupted = [], []
+    for r in rows:
+        if not isinstance(r["filepath"], str):
+            corrupted.append(r)
+            continue
+        fp = T9 / r["filepath"]
+        if not fp.exists():
+            # WORKSPACE 기준으로도 시도
+            fp2 = WORKSPACE / r["filepath"]
+            if not fp2.exists():
+                orphans.append(r)
+    if corrupted:
+        print(f"\n  === DB 오염 {len(corrupted)}건 (filepath가 정수) ===")
+        for r in corrupted:
+            print(f"  [{r['id']:4d}] filepath={repr(r['filepath'])}")
+        if fix:
+            for r in corrupted:
+                conn.execute("DELETE FROM entities WHERE id=?", (r["id"],))
+            conn.commit()
+            print(f"  {len(corrupted)}건 삭제 완료")
+    if not orphans:
+        print("  고아 엔티티 없음 (모든 파일 존재 확인)")
+    else:
+        print(f"\n  === 고아 엔티티 {len(orphans)}건 (파일 없음) ===\n")
+        for r in orphans:
+            print(f"  [{r['id']:4d}] {r['phase']:15s} | {r['filename'][:50]}")
+            print(f"         경로: {r['filepath']}")
+        if fix:
+            for r in orphans:
+                conn.execute("UPDATE entities SET phase='sediment', updated_at=? WHERE id=?",
+                    (datetime.now().isoformat(), r["id"]))
+                conn.execute("INSERT INTO transitions (entity_id,from_phase,to_phase,timestamp,reason) VALUES(?,?,?,?,?)",
+                    (r["id"], r["phase"], "sediment", datetime.now().isoformat(), "orphan: file missing"))
+            conn.commit()
+            print(f"\n  {len(orphans)}건 → sediment 전이 완료")
+        else:
+            print(f"\n  --fix 옵션으로 sediment 전이 가능: python3 t9_seed.py orphans --fix")
+    conn.close()
+
 def main():
     if len(sys.argv) < 2: print(USAGE); return
     c = sys.argv[1]
@@ -866,6 +959,8 @@ def main():
     elif c=="go" and len(sys.argv)>=3: cmd_transition(int(sys.argv[2]), "individuating", " ".join(sys.argv[3:]) if len(sys.argv)>3 else "시작")
     elif c=="resurface": cmd_resurface(" ".join(sys.argv[2:]) if len(sys.argv)>2 else "")
     elif c=="tidy": cmd_tidy()
+    elif c in ("rebuild-fts","rebuild_fts"): cmd_rebuild_fts()
+    elif c=="orphans": cmd_orphans()
     elif c=="do" and len(sys.argv)>2: cmd_compose(" ".join(sys.argv[2:]))
     elif c=="idea" and len(sys.argv)>2: cmd_capture(" ".join(sys.argv[2:]))
     elif c=="ipc": ipc_cli(sys.argv[2:])

@@ -70,7 +70,6 @@ def get(key: str, default: str = "") -> str:
 
 
 # ─── 자주 쓰는 키 (import 즉시 사용 가능) ─────────────────────
-GEMINI_KEY = property(lambda self: get("GEMINI_API_KEY"))  # lazy 아님, 아래서 직접 할당
 
 def _init_keys():
     """모듈 로드 시 키 초기화."""

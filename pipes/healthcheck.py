@@ -160,7 +160,10 @@ def check_db() -> dict:
         conn.close()
         return {"status": "OK", "entities": count}
     except Exception as e:
-        return {"status": "ERROR", "detail": str(e)[:100]}
+        # 내부 경로/쿼리 노출 방지: 로컬 로그에만 상세, TG에는 일반 메시지
+        import logging
+        logging.getLogger("healthcheck").warning("DB check failed: %s", e)
+        return {"status": "ERROR", "detail": "DB 접근 실패 (로컬 로그 확인)"}
 
 
 def run_all() -> dict:
@@ -247,10 +250,17 @@ if __name__ == "__main__":
         print(json.dumps(result, ensure_ascii=False, indent=2))
     elif "--tg" in sys.argv:
         text = format_terminal(result)
+        # TG 전송 시 내부 경로/에러 상세 제거 — 상태만 전달
         issues = [l for l in text.split("\n") if "❌" in l or "⚠️" in l]
         if issues:
-            _tg_send_raw("🔴 T9 Health Check\n\n" + "\n".join(issues))
-            print(text)
+            # detail 부분 마스킹: 괄호 안 내용 제거
+            import re
+            sanitized = [re.sub(r'\(.*?\)', '', l).strip() for l in issues]
+            try:
+                _tg_send_raw("🔴 T9 Health Check\n\n" + "\n".join(sanitized))
+            except Exception:
+                print("  [warn] TG 알림 전송 실패")
+            print(text)  # 로컬에는 전체 표시
         else:
             print("  🟢 전체 정상 — TG 알림 생략")
     else:

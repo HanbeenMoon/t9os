@@ -127,7 +127,7 @@ def convert_file(src: str, dst: str = None, fmt: str = None):
         if hwp:
             try:
                 hwp.quit()
-            except:
+            except Exception:
                 pass
         return None
 
@@ -152,7 +152,7 @@ def _save_as_pdf(hwp, dst_path: str):
         pset.Format = 'PDF'
         result = ctrl.HAction.Execute('FileSaveAs_S', pset.HSet)
         return result and os.path.exists(dst_path)
-    except:
+    except Exception:
         return False
 
 
