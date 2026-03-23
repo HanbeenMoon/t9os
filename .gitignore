@@ -73,14 +73,14 @@ Thumbs.db
 T9OS/
 
 # Personal project ADRs (not T9OS architecture)
-decisions/030-pipeline-project-paper-mill.md
-decisions/032-project-alpha-ontology-pivot.md
-decisions/036-model-switch-qwen.md
-decisions/043-research-project-handover.md
-decisions/047-project-alpha-supabase-mvp.md
-decisions/048-coursework-canvas-automation.md
-decisions/059-project-alpha-cto-role.md
-decisions/062-research-strategy.md
+decisions/030-pm3-paper-mill-pipeline.md
+decisions/032-odnar-ontology-engine-pivot.md
+decisions/036-finbot-model-switch-qwen.md
+decisions/043-ssk-cc-full-handover.md
+decisions/047-odnar-supabase-nextjs-mvp.md
+decisions/048-sc41-canvas-lms-automation.md
+decisions/059-cc-as-odnar-cto.md
+decisions/062-trojan-horse-strategy-ssk.md
 
 # ADR index (references excluded personal ADRs)
 decisions/INDEX.md
