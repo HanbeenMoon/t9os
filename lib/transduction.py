@@ -1,5 +1,5 @@
 """
-전도(Transduction) 자동 탐지 — ODNAR 핵심 기능의 seed 프로토타입
+전도(Transduction) 자동 탐지 — T9OS seed prototype for transduction detection
 ================================================================
 새 엔티티가 capture될 때, 기존 엔티티와의 개념 겹침(concept overlap)을
 계산하여 구조적 유사성이 높은 엔티티를 자동으로 relate 제안한다.

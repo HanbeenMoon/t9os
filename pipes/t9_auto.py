@@ -17,7 +17,7 @@ MODEL = "gemini-3-flash-preview"
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={GEMINI_KEY}"
 
 # T9 OS 프로젝트 목록 (코드로 고정 — Gemini한테 이것만 알려줌)
-PROJECTS = ["T9", "ODNAR", "SSK", "SC41", "AT1", "T9D", "t9tb", "PM3", "L2U"]
+PROJECTS = ["T9", "PROJECT_A", "RESEARCH", "COURSEWORK", "CONTEST", "T9D", "t9tb", "PIPELINE", "LEGACY"]
 
 # 마감/긴급 키워드 (하드 규칙)
 URGENT_KEYWORDS = ["마감", "deadline", "급함", "긴급", "D-", "오늘까지", "내일까지", "ASAP", "즉시"]

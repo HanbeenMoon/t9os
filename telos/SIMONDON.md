@@ -12,7 +12,7 @@ transitioned_at: 2026-03-16 04:59
 |--------|------|-----------|
 | **Preindividual** | 개체화 이전의 과포화된 잠재성 | Layer A: field/inbox, impulses |
 | **Metastability** | 퍼텐셜 축적된 불완전 평형 | tension_detected 상태 |
-| **Disparation** | 양립 불가능한 차원 간 긴장 | "SSK 마감 vs ODNAR 충동" |
+| **Disparation** | 양립 불가능한 차원 간 긴장 | "research deadline vs creative impulse" |
 | **Transduction** | 한 영역의 구조가 인접 영역으로 전파 | 프로젝트 간 패턴 전파 |
 | **Concretization** | 추상→구체 진화 (다기능적 통합) | 도구 간 통합 성숙도 |
 | **Associated Milieu** | 기술적 개체와 환경의 되먹임 | 파일시스템+Notion+GitHub+한빈 |

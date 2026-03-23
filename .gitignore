@@ -106,3 +106,12 @@ artifacts/STRUCTURAL_*
 QUICKSTART.md
 pipelines/
 deploy/
+
+# Personal data cleanup (Phase 1)
+BIBLE.md
+artifacts/T9OS_V2_PLAN.md
+decisions/SYSTEM_MAP.md
+decisions/TECH_DEBT.md
+telos/LEARNED.md
+telos/UX_PRINCIPLES.md
+telos/MODELS.md
