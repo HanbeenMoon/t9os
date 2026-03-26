@@ -113,3 +113,10 @@ telos/LEARNED.md
 telos/UX_PRINCIPLES.md
 telos/MODELS.md
 .venv/
+dist/
+lib/
+pipes/
+t9_seed.py
+t9_viz.py
+BIBLE.md
+constitution/orient_routes.yaml
