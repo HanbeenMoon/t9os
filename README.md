@@ -10,6 +10,8 @@ A personal operating system built on top of Claude Code, grounded in Gilbert Sim
 
 T9 OS turns an AI coding assistant into a full life-and-work orchestration layer. It manages tasks, decisions, projects, and knowledge — not through rigid categories, but through a state machine modeled on how things actually come into being.
 
+[![demo](https://asciinema.org/a/3oAJ2fpx5B5Yf9No.svg)](https://asciinema.org/a/3oAJ2fpx5B5Yf9No)
+
 Built by a non-developer using philosophical intuition and AI pair programming. This is not production software. It is one person's answer to the question: *what if your operating system understood that ideas start as tension, not as tickets?*
 
 ---
@@ -165,7 +167,7 @@ T9OS/
 ├── t9_seed.py           # seed engine — entity management, search, lifecycle
 ├── constitution/        # L1 (execution), L2 (interpretation), L3 (amendment), Guardians
 ├── telos/               # mission, goals, Simondon mapping, mental models
-├── decisions/           # 66 Architecture Decision Records
+├── docs/decisions/           # 66 Architecture Decision Records
 ├── lib/                 # config, logger, parsers, transduction, IPC
 ├── pipes/               # pipelines — guardian batch, CEO brief, calendar, deadlines
 ├── mcp/                 # MCP server wrapping t9_seed.py
@@ -231,7 +233,7 @@ Core features (capture, search, daily, transitions) work entirely offline with z
 If you just want to study the design:
 
 1. **Constitution** — `src/t9os/templates/constitution/` — self-amending 3-tier rule system
-2. **ADRs** — `decisions/` — 47 real architectural decisions with Simondonian phase metadata
+2. **ADRs** — `docs/decisions/` — 47 real architectural decisions with Simondonian phase metadata
 3. **Seed engine** — `src/t9os/engine/seed.py` — entity lifecycle with SQLite FTS
 
 ---
