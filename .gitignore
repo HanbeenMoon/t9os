@@ -1,30 +1,31 @@
 # T9OS standalone .gitignore
-# For public GitHub release — personal/sensitive data excluded
+# For public GitHub release -- personal/sensitive data excluded
 
-# Database files (contains personal entity data)
-.t9.db
-.t9_legacy.db
-.t9_snapshot.json
-.t9_v1_backup_*.db
+# Database files
+*.db
 *.db-journal
 *.db-wal
 *.db-shm
-pipes/.whisper_pipeline.db
 
 # Python
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+*.egg-info/
 
 # Personal data directories
-data/conversations/
-data/archive_legacy/
-data/cc_sessions_raw
-data/notion_dump
-data/personal_dump
-data/composes/
+data/
 spaces/
 field/
+memory/
 
 # Runtime / process files
 .t9bot.pid
@@ -36,27 +37,11 @@ logs/
 *.log
 
 # Generated (reproducible)
-artifacts/viz/
-
-# Personal/business artifacts (not code)
-artifacts/project_alpha_*/
-artifacts/project_beta/
-artifacts/external_applications.txt
-artifacts/transcripts/
-artifacts/external_docs/*.txt
-artifacts/research_*
-artifacts/BIBLE_*
-artifacts/dashboard.html
+artifacts/
 
 # Session/memory data
 .claude/
 .session_locks.json
-memory/
-
-# Runtime state
-.t9bot.pid
-.t9bot.lock
-.pipe_status.json
 
 # OS / editor
 .DS_Store
@@ -81,35 +66,12 @@ decisions/047-odnar-supabase-nextjs-mvp.md
 decisions/048-sc41-canvas-lms-automation.md
 decisions/059-cc-as-odnar-cto.md
 decisions/062-trojan-horse-strategy-ssk.md
-
-# ADR index (references excluded personal ADRs)
 decisions/INDEX.md
-
-# Personal telos files
-telos/LEARNED_RESEARCH.md
-telos/PROJECTS.md
-telos/GOALS.md
-
-# Personal pipeline code
-pipes/coursework_cron.py
-pipes/coursework_cron_runner.sh
-
-# Personal artifacts
-artifacts/competition_*
-artifacts/ISOMORPHISM_*
-artifacts/STRUCTURAL_*
+decisions/SYSTEM_MAP.md
+decisions/TECH_DEBT.md
 
 # Other personal/non-public
 QUICKSTART.md
 pipelines/
 deploy/
-
-# Personal data cleanup (Phase 1)
 BIBLE.md
-artifacts/T9OS_V2_PLAN.md
-decisions/SYSTEM_MAP.md
-decisions/TECH_DEBT.md
-telos/LEARNED.md
-telos/UX_PRINCIPLES.md
-telos/MODELS.md
-*.db

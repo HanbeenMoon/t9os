@@ -1,223 +1,562 @@
+---
+phase: stabilized
+transitioned_at: 2026-03-16 12:30
+schema_version: v0.1
+---
+
 # T9 OS Guardian System
-
-Automated review system for all code and document work across all projects.
-
----
-
-## 1. Guardian Types and Roles
-
-### G1. Tech Guardian
-- **Scope**: Code quality, security, architecture
-- **Checks**:
-  - OWASP Top 10 security vulnerabilities
-  - Code complexity / spaghetti detection
-  - Build vs Buy violations
-  - Over-engineering
-  - Missing error handling
-  - Hardcoded API keys or secrets
-  - **Infrastructure consistency**:
-    - Duplicate DB paths (ghost DB files)
-    - Hardcoded paths (not going through config.py)
-    - t9os-public mirror sync state
-    - Broken symlinks
-    - digest/manual-registered data surviving reindex
-    - pycache residue (auto-verified by `tests/smoke_test.py`)
-- **Severity**: P0 (immediate fix) / P1 (fix this session) / P2 (next session) / P3 (informational)
-- **P0/P1**: Agent fixes immediately, no approval needed.
-
-### G2. Philosophy Guardian — Two-Phase
-
-**Execution order: G2-A → G2-B (both must pass)**
-
-#### G2-A. Vision Guardian — Phase 1
-- **Scope**: Project vision distortion prevention
-- **Principle**: AI assistants tend to shrink and distort vision during repetitive work. This guardian checks that the original vision has not been diluted.
-- **Checks**:
-  - ANCHOR document required-word / forbidden-word compliance
-  - Vision reduction (e.g., 3-layer concept reduced to 1 layer)
-  - User statement distortion (attributing unspoken words to the designer)
-  - Means-ends inversion (mistaking technique for purpose)
-- **Severity**: CATASTROPHIC (vision distortion) / WARNING (dilution signs) / CLEAN
-
-#### G2-B. Ontology Guardian — Phase 2
-- **Scope**: Simondonian ontological principle enforcement
-- **Principle**: T9 OS is built on Simondon's individuation theory. Code or design that violates this ontology undermines system-wide coherence.
-- **Checks**:
-  - **Preindividual deletion prohibited**: In nature, preindividuals do not disappear. "Dissolved" means "sunk into background," not "discarded."
-  - **Individuation process respected**: State transitions are energy transformations. Skipping states (preindividual → archived) is classification without individuation.
-  - **Disparation tension preserved**: Tension is not something to eliminate — it is the engine of individuation.
-  - **Modulation principle**: Expressions like "finished system" or "final version" are ontologically incorrect.
-  - **Transductive learning**: The output of one individuation must seed the next — check that this flow is not broken.
-- **Severity**: VIOLATION / DRIFT / ALIGNED
-- **VIOLATION**: Immediate fix, no approval needed. Simondonian principles outrank L1.
-
-### G3. Rule Guardian
-- **Scope**: Constitutional compliance
-- **Checks**:
-  - L1 execution rule violations (log format, file rules, token rules)
-  - L2 interpretation rule violations (state transition procedure, five-axis interpretation)
-  - SRBB order violations
-  - Data access rule violations (original modification, "not found" without full scan)
-  - Concurrent file access (inter-agent conflict)
-  - t9_seed.py 1000-line cap
-- **Scoring**: 100-point scale. Below 80 = mandatory fix.
+# 모든 프로젝트의 코드/문서 작업에 대한 자동 감시 체계
 
 ---
 
-## 2. Project-Specific Guardian Criteria
+## 1. 감시단 종류 및 역할
 
-### Common (All Projects)
-- G1 Tech Guardian: always applied
-- G3 Rule Guardian: always applied
+### G1. 기술 감시단 (Tech Guardian)
+- **도구**: `octo:droids:octo-code-reviewer` 또는 `.claude/agents/code-reviewer.md`
+- **담당**: 코드 품질, 보안, 아키텍처
+- **검사 항목**:
+  - OWASP Top 10 보안 취약점
+  - 코드 복잡도 / 스파게티 감지
+  - Build vs Buy 위반 (직접 구현 vs 라이브러리)
+  - 불필요한 over-engineering
+  - 에러 핸들링 누락
+  - API 키/비밀번호 하드코딩
+  - **인프라 정합성** (2026-03-24 추가):
+    - DB 경로 이중화 (유령 DB 파일 존재 여부)
+    - 하드코딩된 경로 (config.py 경유하지 않는 직접 참조)
+    - t9os-public 미러 동기화 상태
+    - 깨진 심볼릭 링크
+    - digest/수동등록 데이터의 reindex 생존
+    - pycache 잔존 → `tests/smoke_test.py` 정합성 섹션이 자동 검증
+- **판정 등급**: P0(즉시 수정) / P1(세션 내 수정) / P2(다음 세션) / P3(참고)
+- **P0/P1 발견 시**: cc가 즉시 수정. 한빈 승인 불요.
 
-### Per-Project ANCHOR Documents
-Each Tier 1 project should have an ANCHOR document at `T9OS/artifacts/{project}/PHILOSOPHY_ANCHOR.md` containing:
-- **Required words**: Terms that must be used when describing the project
-- **Forbidden words**: Terms that distort the project vision
-- **Technical judgment criteria**: A yes/no question to evaluate feature decisions
-- **G2 mode**: Lightweight (code only G1) or Full (all documents checked for vision alignment)
+### G2. 철학 감시단 (Philosophy Guardian) — 2인 체제
 
-Tier 2+ projects apply G1 always, G2 only when an ANCHOR document exists, G3 always.
+**실행 순서: G2-A → G2-B (2단계 검증)**
+1. 먼저 G2-A(비전): 한빈이 시몽동을 자기 맥락에 맞게 가공한 프로젝트 비전 기준으로 검사
+2. 그 다음 G2-B(존재론): 순수 시몽동 개체화 이론 기준으로 재검사
+3. 두 단계 모두 통과해야 CLEAN/ALIGNED
 
----
+#### G2-A. 비전 감시 (Vision Guardian) — 1차 검증
+- **도구**: `octo:personas:research-synthesizer` 또는 프로젝트별 ANCHOR 문서 참조
+- **담당**: 프로젝트 비전 왜곡 방지 (한빈이 가공한 시몽동 기준)
+- **핵심 원리**: AI는 반복 작업에서 비전을 축소/왜곡하는 경향이 있다. 비전 감시는 원래 비전이 희석되지 않았는지 검사한다.
+- **검사 항목**:
+  - 프로젝트별 ANCHOR 문서의 필수어/금지어 준수
+  - 비전 축소 (3층 중 1층만 남기는 등)
+  - 사용자 발언 왜곡 (한빈이 안 한 말을 한 것처럼 인용)
+  - 수단과 목적의 전도 (기법을 목적으로 오인)
+- **판정 등급**: CATASTROPHIC(비전 왜곡) / WARNING(희석 징후) / CLEAN
 
-## 3. Extended Guardians
+#### G2-B. 존재론 감시 (Ontology Guardian) — 2차 검증
+- **도구**: cc 직접 실행 (BIBLE.md + 시몽동 원칙 대조)
+- **담당**: T9 OS 존재론적 원칙 위반 방지 (순수 시몽동 기준)
+- **핵심 원리**: T9 OS는 시몽동 개체화 이론 위에 서 있다. 코드/설계가 이 존재론을 위반하면, 시스템 전체의 일관성이 무너진다.
+- **검사 항목**:
+  - **전개체 삭제 불가**: 자연에서 전개체는 사라지지 않는다. dissolved는 "배경으로 가라앉음"이지 "폐기"가 아니다
+  - **개체화 과정 존중**: 상태 전이는 에너지 변환이다. 건너뛰기(preindividual→archived)는 개체화 없는 분류에 불과
+  - **이접적 긴장 보존**: 긴장(tension)은 제거 대상이 아니라 개체화의 동력이다
+  - **변조 원칙**: "완결된 시스템", "최종 버전"이라는 표현은 시몽동적으로 틀리다
+  - **전도적 학습**: 한 개체화의 결과가 다른 전개체의 씨앗이 되는 흐름이 끊기지 않았는가
+- **판정 등급**: VIOLATION(존재론 위반) / DRIFT(원칙 이탈 징후) / ALIGNED
+- **VIOLATION 발견 시**: 즉시 수정. 한빈 승인 불요. 시몽동 원칙은 L1보다 상위.
 
-### G4. Writing Guardian
-- **Scope**: Quality of all external-facing outputs (papers, proposals, presentations)
-- **Checks**:
-  - Wittgenstein principle: writing only about things actually experienced
-  - Factual verification: all claims backed by verifiable data
-  - Specificity over abstraction: concrete actions, not vague promises
-  - Structure: "experience → insight → application" flow
-  - Word count compliance (within ±10% of target)
-  - Tone consistency (formal/informal, active/passive)
-- **Severity**: REJECT / REVISE / PASS
-
-### G5. Business Guardian
-- **Scope**: Business model viability, cash flow, competitive defense
-- **Checks**: revenue model presence, cost-benefit ratio, investor-explainability
-- **Severity**: BLOCK / WARN / PASS
-
-### G6. Marketing Guardian
-- **Scope**: User acquisition, retention, viral potential
-- **Checks**: 5-second comprehension test, desire trigger, shareability, onboarding friction
-- **Severity**: BLOCK / WARN / PASS
-
-### G7. Design Guardian
-- **Scope**: Visual design, interaction, motion, branding
-- **Checks**: philosophical visualization, motion quality (Stripe/Linear benchmark), readability, design token consistency, accessibility
-- **Severity**: REJECT / REVISE / PASS
-
----
-
-## 4. Guardian Debate Protocol
-
-When G2 (Philosophy) and G5 (Business) / G6 (Marketing) conflict:
-1. Each guardian states its position
-2. Cross-rebuttals
-3. Joint resolution
-4. If no consensus → designer makes final call
-
-**Principle**: No guardian has unilateral veto power. If G2 says "no" but G5 says "we'll die without it," they must debate.
-
----
-
-## 5. Judicial Independence
-
-### Principle
-
-The Guardian System has **mandatory inspection domains that cannot be skipped, reduced, or deferred at the agent's discretion**. The agent operates as both executive and guardian operator, but certain inspections **fire automatically** regardless of the agent's judgment. This is a structural prerequisite for self-oversight to function.
-
-### Mandatory Auto-Trigger Inspections
-
-| Condition | Auto-Trigger | Rationale |
-|-----------|-------------|-----------|
-| Constitution (L1/L2/L3/GUARDIANS.md) modified | G3 Rule Guardian (full) | Modifying the system's foundation requires self-inspection |
-| `t9_seed.py` modified | G1 Tech + G2-B Ontology | Seed engine is the core individuation tool |
-| ANCHOR document modified | G2-A Vision (for that project) | Vision criteria themselves are changing |
-| Before deployment (push/deploy) | G1 Security checklist (min lightweight) | External exposure is irreversible |
-| After P0/CATASTROPHIC fix | Re-run that guardian (regression) | Verify fix didn't create new issues |
-| 100+ line code change | G1 Tech (min lightweight) | Bug probability increases non-linearly |
-
-### No-Exemption Principle
-
-- The agent cannot skip mandatory inspections citing "insufficient tokens," "time pressure," or "minor change"
-- Only the designer can explicitly exempt: "skip guardians this time"
-- Self-exemption is itself a G3 violation
+### G3. 규칙 감시단 (Rule Guardian)
+- **도구**: Explore (내장) 또는 L1/L2 직접 대조
+- **담당**: T9OS 헌법 준수
+- **검사 항목**:
+  - L1 실행 규칙 위반 (로그 형식, 파일 규칙, 토큰 규칙)
+  - L2 해석 규칙 위반 (상태 전이 절차, 5축 해석 누락)
+  - Search > Reuse > Buy > Build 순서 위반
+  - 데이터 접근 규칙 위반 (원본 수정, 검색 없이 "없다" 판단)
+  - 같은 파일 동시 접근 (에이전트 간 충돌)
+  - t9_seed.py 1000줄 상한 위반
+- **판정**: 100점 만점. 80점 미만 시 수정 필수.
 
 ---
 
-## 6. Execution
+## 2. 프로젝트별 감시 기준
 
-### Tool
-```bash
-# Light mode (G1 only — bugfixes, small changes)
-python3 pipes/gm_batch.py guardian -t <files> --mode light
+### 공통 (모든 프로젝트)
+- G1 기술 감시단: 항상 적용
+- G3 규칙 감시단: 항상 적용
 
-# Default mode (G1+G2+G3 — feature additions, refactoring)
-python3 pipes/gm_batch.py guardian -t <files> --anchor <ANCHOR_PATH>
+### ODNAR (Tier 1)
+- **ANCHOR**: `T9OS/artifacts/odnar_예창패/PHILOSOPHY_ANCHOR.md`
+- **필수어**: 개인 온톨로지, 기의 번역, 개체화, 나도 모르는 나, 인간-AI-AI-인간
+- **금지어**: 메모 앱, 반대 기록 탐지, 소름 돋는 순간, Notion/Obsidian 카테고리 경쟁
+- **기술 판단 기준**: "이것이 개인 온톨로지 구축에 기여하는가?" YES면 진행, NO면 중단
+- **G2 모드**: 중량 (모든 문서/코드에서 비전 정합성 검사)
 
-# Full mode (G1-G7 — architecture, vision, business plans)
-python3 pipes/gm_batch.py guardian -t <files> --mode full --anchor <ANCHOR_PATH>
+### SSK (Tier 1)
+- **ANCHOR**: `T9OS/telos/LEARNED_SSK.md` (학습 기록) + 논문 본문
+- **철학**: 실증적 방법론 엄수. 인과 주장에 식별 전략 명시.
+- **필수어**: 특허자산, 산업별 차별적 효과, 임금 프리미엄, 패널 고정효과
+- **금지어**: "~임을 증명했다" (인과 입증은 주장이 아님), 비실증적 일반화
+- **기술 판단 기준**: "이 분석이 심사위원의 질문에 답할 수 있는가?"
+- **G2 모드**: 경량 (Stata/Python 코드는 G1만, 논문 본문은 G2도)
 
-# Specific guardians only
-python3 pipes/gm_batch.py guardian -t <files> -g G5 G6
+### T9OS (Tier 1)
+- **ANCHOR**: `T9OS/BIBLE.md` + 헌법 L1/L2/L3
+- **철학**: 시몽동 기반. 파이프라인을 만드는 파이프라인. 메타 작업 최소화.
+- **필수어**: 전개체, 개체화, 이접, 전도적 학습, 변조
+- **금지어**: "완결된 시스템", "최종 버전" (변조 원칙 위반)
+- **기술 판단 기준**: "이 변경이 구체화 수준을 높이는가, 아니면 메타 작업인가?"
+- **G2 모드**: 경량 (규칙 문서 수정 시만 중량)
+
+### SC41 (Tier 2)
+- **철학**: 최소 에너지 운영. 과제 자동화.
+- **G2 모드**: 생략 (철학 감시 불필요)
+- **G1만 적용**: 코드 동작 여부만 확인
+
+### AT1 (시즌)
+- **철학**: 대회 답안 정확성. 제한 시간 내 최대 점수.
+- **G2 모드**: 생략
+- **G1만 적용**: 코드 정확성만 확인
+
+### PM3, T-SUM, L2U, T9D 등 (Tier 2-3)
+- **G1 적용**: 항상
+- **G2 적용**: 해당 프로젝트에 ANCHOR 문서가 존재할 때만
+- **G3 적용**: 항상
+
+---
+
+## 2.5 G4. 글쓰기 감시단 (Writing Guardian)
+
+### 역할
+- **담당**: 모든 대외 산출물(자소서, 지원서, 논문, 사업계획서, 발표자료)의 글 품질 검증
+- **도구**: cc 직접 실행 또는 `octo:personas:academic-writer`
+
+### 검사 항목
+1. **비트겐슈타인 원칙**: 경험하지 않은 것을 쓰지 않았는가 (말할 수 없는 것에 대해서는 침묵)
+2. **사실 검증**: 모든 경험/수치가 검증 가능한 사실인가 (지어낸 경력, 과장된 수치 없는가)
+3. **구체성**: 추상적 다짐("성실히 하겠습니다") 대신 구체적 행동이 명시되어 있는가
+4. **구조**: "경험 → 인사이트 → 적용" 흐름이 존재하는가
+5. **분량**: 지정 글자 수(300자/500자 등)에 ±10% 이내인가
+6. **톤 일관성**: 한 문서 내에서 존댓말/반말, 능동/수동 혼용 없는가
+7. **SSK 메타 교훈 적용**:
+   - "읽는 것 ≠ 반영하는 것" — 경험을 나열만 하지 않고 인사이트까지 연결했는가
+   - "사람이 보는 관점으로" — 읽는 사람(심사위원) 입장에서 자연스러운가
+   - "이만하면 됐다는 항상 틀렸다" — 첫 초안 그대로 제출하지 않았는가
+
+### 판정
+- **REJECT**: 사실이 아닌 내용 포함 (즉시 수정)
+- **REVISE**: 구조/분량/톤 문제 (수정 방향 제시)
+- **PASS**: 제출 가능
+
+### 적용 대상
+| 산출물 | G4 적용 |
+|--------|---------|
+| 자소서/지원서 | 필수 |
+| 논문 본문 | 필수 (G2와 병렬) |
+| 사업계획서 | 필수 |
+| 발표자료 | 경량 (핵심 메시지만) |
+| 이메일/카톡 | 생략 |
+| 코드 주석 | 생략 |
+| 로그/내부 문서 | 생략 |
+
+---
+
+## 2.6 G5 (경영). 경영 감시단 (Business Guardian)
+
+### 역할
+- **담당**: SMD의 생존과 영속성. BM, 현금흐름, 투자, 법인 운영.
+- **도구**: `octo:personas:strategy-analyst` 또는 `octo:personas:finance-analyst`
+- **핵심 원칙**: "철학이 아무리 좋아도 BM 없으면 죽는다."
+
+### 검사 항목
+1. **수익 모델**: 이 기능/결정이 어떻게 돈이 되는가?
+2. **현금흐름**: 비용 대비 수익이 합리적인가? API 비용 폭발 위험은?
+3. **투자 적합성**: 예창패/TIPS/VC에 설명 가능한가?
+4. **경쟁 방어**: 이 차별점이 6개월 후에도 유효한가?
+5. **G2 견제**: 철학 감시단이 모든 마케팅을 차단하면 "그러면 뭘로 먹고 사나?"라고 반문
+
+### 판정
+- **BLOCK**: 사업적으로 자살 행위 (예: 무료 전용, 수익 모델 없음)
+- **WARN**: 비용 위험 또는 경쟁 방어 취약
+- **PASS**: 사업적으로 합리적
+
+---
+
+## 2.7 G6 (마케팅). 마케팅 감시단 (Marketing Guardian)
+
+### 역할
+- **담당**: 사용자 획득, 리텐션, 바이럴, 대중 이해도.
+- **도구**: `octo:personas:marketing-strategist`
+- **핵심 원칙**: "대중은 자기랑 상관없다 싶으면 관심 없다. 5초 안에 판단한다."
+
+### 검사 항목
+1. **즉시 이해**: 이 카피/UI를 처음 보는 사람이 5초 안에 이해하는가?
+2. **욕구 자극**: "이거 써보고 싶다"는 감정을 유발하는가?
+3. **공유 가능성**: SNS에 공유하고 싶어지는 요소가 있는가?
+4. **진입 마찰**: 가입/사용까지 몇 단계? 2단계 이상이면 위험.
+5. **G2 견제**: 철학 감시단이 차단한 안에 대해 "그러면 대중이 어떻게 들어오나?"라고 반문
+
+### 판정
+- **BLOCK**: 아무도 이해 못 하는 메시지
+- **WARN**: 이해는 되지만 욕구 자극 부족
+- **PASS**: 대중 소구력 있음
+
+---
+
+## 2.8 G7 (디자인). 디자이너 감시단 (Design Guardian)
+
+### 역할
+- **담당**: 시각 디자인, 인터랙션, 모션, 브랜딩. 시몽동+T9OS 철학의 시각적 번역.
+- **도구**: `octo:personas:ui-ux-designer` + `octo:personas:frontend-developer`
+- **핵심 원칙**: "기술은 드러나고 철학은 느껴지는 것." 디자인 박사급 안목.
+- **권한**: 디자인 관련 결정에서 높은 재량권. 철학 감시단(G2)과 긴밀 협력.
+
+### 전문 영역
+- 시몽동의 개체화 이론 → 시각 언어로 번역
+- 아크릴판 존재론 → 인터랙티브 아트로 구현
+- CHOI OD 철학 → UI/UX/모션에 체화
+- 탑 디자인 에이전시 수준의 품격
+
+### 검사 항목
+1. **철학 시각화**: 도넛 아크릴판, 겹침, 빈 곳이 시각적으로 체감되는가?
+2. **모션 품격**: Stripe/Linear급인가? 아니면 학생 포트폴리오인가?
+3. **가독성**: ODNAR 간판이 명확하게 보이는가?
+4. **일관성**: 디자인 토큰(색상/폰트/간격)이 전체에 통일되는가?
+5. **접근성**: 모바일, 저사양, 색맹 대응
+6. **G2 협력**: 철학 감시단과 시각 언어가 일치하는가?
+
+### 판정
+- **REJECT**: 철학이 보이지 않거나 품격 미달
+- **REVISE**: 방향은 맞지만 실행 보완 필요
+- **PASS**: 탑 에이전시급
+
+---
+
+## 2.9 감시단 간 토론 (Guardian Debate)
+
+G2(철학)와 G5(경영)/G6(마케팅)이 충돌하면 **토론을 실행**한다.
+- 각 감시단이 입장을 진술
+- 서로에 대한 반론
+- 합의안(Joint Resolution) 도출
+- 합의 불가 시 **한빈이 최종 판단**
+
+**원칙**: 어떤 감시단도 단독으로 거부권(veto)을 행사할 수 없다. G2가 "안 돼"라고 해도 G5가 "그러면 죽는다"라고 하면 토론해야 한다.
+
+---
+
+## 2.10 사법부 독립 원칙 (Judicial Independence)
+
+<!-- 법이론 근거: H.L.A. Hart, The Concept of Law (1961)
+     "A legal system requires secondary rules of adjudication that are
+      independent from the rules of obligation and the rules of change."
+     행정부(executive)가 사법부(judiciary)의 작동을 통제하면,
+     사법부는 행정부의 도구가 되어 견제 기능을 상실한다.
+     Lon Fuller, The Morality of Law (1964): 법의 내재적 도덕성 8가지 중
+     "congruence between official action and declared rule" —
+     규칙 집행자가 자기 집행을 면제할 수 없다. -->
+
+### 원칙
+
+감시단(Guardian System)은 **cc의 재량으로 생략·축소·연기할 수 없는 필수 검사 영역**을 가진다. cc는 T9OS의 행정부(executive)이자 감시단의 운영자이지만, 특정 감시 행위는 cc의 판단과 무관하게 **자동으로 발동**해야 한다. 이것은 "cc가 자기 자신을 감시하는 시스템"이 실질적으로 작동하기 위한 구조적 전제다.
+
+### 현재 문제
+
+현행 체계에서 cc가 경량/중량 모드를 자율 판단하고, 생략 조건도 cc가 적용한다. 이는 Hart가 경고한 "입법자가 동시에 재판관인 상태"에 해당한다. cc가 바쁘거나 토큰이 부족하면 감시를 축소할 유인이 존재한다.
+
+### 필수 자동 발동 검사 (cc가 생략할 수 없음)
+
+아래 검사는 cc의 재량 밖이다. PreToolUse 훅 또는 세션 종료 훅에서 **조건 충족 시 자동 실행**되어야 한다.
+
+| 조건 | 자동 발동 검사 | 근거 |
+|------|---------------|------|
+| 헌법(L1/L2/L3/GUARDIANS.md) 수정 시 | G3 규칙 감시 (중량) | 헌법 수정은 시스템의 기반을 변경하는 행위. 자기 감시 필수 |
+| `t9_seed.py` 수정 시 | G1 기술 감시 + G2-B 존재론 감시 | 시드 엔진은 개체화의 핵심 도구. 존재론 정합성 검증 필수 |
+| ANCHOR 문서 수정 시 | G2-A 비전 감시 (해당 프로젝트) | 비전 기준 자체가 바뀌므로 비전 왜곡 여부 즉시 검증 |
+| 배포(push/deploy) 직전 | G1 보안 체크리스트 (최소 경량) | 외부 노출은 비가역적. 보안 검사 면제 불가 |
+| P0/CATASTROPHIC 수정 후 | 해당 감시단 재실행 (회귀 검증) | 수정이 새 문제를 만들지 않았는지 확인 |
+| 100줄 이상 코드 변경 시 | G1 기술 감시 (최소 경량) | 대규모 변경은 버그 확률이 비선형으로 증가 |
+
+### cc의 남은 재량 영역
+
+위 필수 발동 목록에 해당하지 않는 경우, cc는 기존대로 경량/중량/생략을 자율 판단한다. 사법부 독립은 **모든 것을 자동화하라**는 뜻이 아니다. 일상적 업무에서 cc의 효율적 판단을 존중하되, **시스템의 기반을 건드리는 순간에는 자동 견제가 작동해야 한다**는 것이다.
+
+### 면제 불가 원칙
+
+- cc가 "토큰 부족", "시간 부족", "경미한 수정"을 이유로 위 필수 검사를 건너뛸 수 없다
+- 유일한 면제 권한자는 **한빈**이다 (명시적 지시: "이번은 감시단 생략해")
+- cc가 스스로 면제하는 행위 자체가 G3 위반(L1 실행 규칙 위반)으로 판정된다
+
+### 구현 메커니즘
+
+이 원칙은 정책 엔진(PreToolUse 훅)과 연동된다:
+- `git commit` 시: 훅이 변경 파일 목록을 검사 → 위 조건 해당 시 감시단 자동 트리거
+- 세션 종료 시: `session-end.sh`에서 세션 중 필수 검사 누락 여부를 감사
+- 누락 발견 시: 다음 세션 시작 시 `WORKING.md`에 "미수행 감사 항목" 경고 표시
+
+---
+
+## 3. 실행 조건: 경량 모드 vs 중량 모드
+
+### 경량 모드 (Lightweight)
+- **언제**: 일상적 코드 수정, 버그 픽스, 단순 문서 업데이트
+- **실행**: G1(기술)만. 변경된 파일만 스코핑.
+- **비용**: 최소. cc가 직접 코드 리뷰 체크리스트 실행.
+- **소요**: ~30초
+
+### 중량 모드 (Full)
+- **언제**:
+  - 새 기능/모듈 신규 생성
+  - 아키텍처 변경 (파일 구조, DB 스키마, API 설계)
+  - 프로젝트 비전 관련 문서 작성/수정
+  - 헌법(L1/L2/L3) 수정
+  - 100줄 이상 코드 변경
+  - 한빈이 명시적으로 "감시단 돌려"라고 지시
+- **실행**: G1 + G2 + G3 전부. 프로젝트별 ANCHOR 대조.
+- **비용**: 중간. 에이전트 3개 백그라운드 병렬 실행.
+- **소요**: ~2-3분
+
+### 판단 기준 요약
+
+| 변경 유형 | 모드 | 감시단 |
+|-----------|------|--------|
+| 버그 픽스 / 1-10줄 수정 | 경량 | G1 |
+| 기능 추가 / 리팩터링 | 중량 | G1+G2+G3 |
+| 문서만 (로그, README) | 생략 | 없음 |
+| 비전/철학 문서 | 중량 | G1+G2+G3 |
+| 헌법 수정 | 중량 | G1+G2+G3 |
+| Stata do파일 수정 | 경량 | G1 |
+| 논문 본문 수정 | 중량 | G2+G3+G4 |
+| 자소서/지원서/사업계획서 | 중량 | G4 (필수) |
+| 발표자료 | 경량 | G4 (경량) |
+
+### 생략 조건 (감시단 실행 면제)
+- 로그 파일 작성 (`_ai/logs/`)
+- `.claude/` 내부 메타 파일 수정 (WORKING.md, state.md)
+- git 작업 (commit, push, branch)
+- 단순 파일 복사/이동
+
+---
+
+## 4. L1/L2에 추가할 규칙
+
+### L1 추가 (실행 규칙)
+
+```markdown
+## 감시단 (Guardian System)
+- 코드/문서 작업 완료 후 감시단 실행은 **의무**. 생략 사유는 3.의 생략 조건만 허용.
+- 경량/중량 판단은 cc가 자율적으로. 애매하면 중량.
+- P0/P1 발견 시 즉시 수정 (한빈 승인 불요).
+- 감시단 규칙 상세: `T9OS/constitution/GUARDIANS.md` 참조.
+- 프로젝트별 ANCHOR 문서가 있으면 G2 철학 감시 대상.
 ```
 
-### Mode Selection
+### L2 추가 (해석 규칙)
 
-| Change Type | Mode | Guardians |
-|------------|------|-----------|
-| 1-10 line bugfix | light | G1 |
-| Feature addition (>100 lines) | default | G1+G2+G3 |
-| Architecture/vision documents | full | G1-G7 |
-| Code-only work | specific | G1 |
-| Papers/proposals | full | G2+G3+G4 |
-
-### Skip Conditions (guardian exempt)
-- Log file writes (`_ai/logs/`)
-- Internal meta file edits (WORKING.md, state.md)
-- Git operations (commit, push, branch)
-- Simple file copy/move
+```markdown
+## 감시단 해석 기준
+- "비전 왜곡"의 판단: ANCHOR 문서의 금지어 1회 사용 = WARNING, 필수어 전부 누락 = CATASTROPHIC.
+- 경량 → 중량 에스컬레이션: G1에서 P0 발견 시 자동으로 중량 모드 전환.
+- 새 프로젝트 생성 시: ANCHOR 문서 작성 여부를 한빈에게 확인. 없으면 G2 생략.
+- 감시단 결과는 로그에 포함 (별도 로그 파일 불필요).
+```
 
 ---
 
-## 7. ANCHOR Document Guide
+## 5. 실행 방법
 
-For new Tier 1 projects or Tier 2 projects with clear vision, create an ANCHOR document.
+### 5.1 cc 자체 실행 (경량 모드)
 
-### Location
+cc가 코드 작업 완료 후 아래 체크리스트를 내부적으로 실행:
+
+```
+[G1 체크리스트]
+- [ ] 보안: API 키 하드코딩 없음
+- [ ] 보안: 사용자 입력 검증 존재
+- [ ] 품질: 에러 핸들링 존재
+- [ ] 품질: 불필요한 복잡성 없음
+- [ ] 규칙: Build vs Buy 위반 없음
+- [ ] 규칙: t9_seed.py 1000줄 이내
+```
+
+### 5.2 gm_batch.py 감시단 실행 (권장 방식 — cc 토큰 절약)
+
+cc는 감시단장 역할만. 하위 직원(gm batch)이 실제 검사를 대량 병렬 실행한다. **무료**.
+
+```bash
+# 기본 실행 (G1+G2+G3)
+python3 T9OS/pipes/gm_batch.py guardian \
+  --target changed_file.py \
+  --anchor T9OS/artifacts/odnar_예창패/PHILOSOPHY_ANCHOR.md
+
+# 경량 (G1만)
+python3 T9OS/pipes/gm_batch.py guardian --target file.py --mode light
+
+# 전체 (G1~G7, 19명 하위직원)
+python3 T9OS/pipes/gm_batch.py guardian --target file.py --mode full
+
+# 특정 감시단만
+python3 T9OS/pipes/gm_batch.py guardian --target 사업계획서.md -g G5 G6
+
+# 다중 파일
+python3 T9OS/pipes/gm_batch.py guardian --target file1.py file2.tsx file3.md -g G1 G2
+```
+
+**결과 파일**:
+- `_ai/logs/gm/{timestamp}_guardian.json` — 전체 상세
+- `_ai/logs/gm/{timestamp}_guardian_brief.md` — **CEO 브리프 (이것만 읽으면 됨)**
+
+**P0 자동 수정 워크플로우**:
+1. gm_batch 실행 → CEO brief 읽기
+2. P0 이슈의 suggestion 적용
+3. 파일 저장
+4. gm_batch 재실행 (회귀 검증)
+5. P0=0 확인 → 완료
+
+**하위 직원 구성 (GUARDIAN_WORKERS)**:
+- G1: 보안스캐너, 코드품질, BuildVsBuy, 에러핸들링 (4명)
+- G2: 금지어스캔, 필수어확인, 비전축소감지, 원문왜곡감지 (4명)
+- G3: 로그형식, SRBB감사 (2명)
+- G4: 사실검증, 구조톤 (2명)
+- G5: 재무검증, 기술경영번역, 시장데이터출처 (3명)
+- G6: 5초테스트, 욕구자극 (2명)
+- G7: 철학시각화, 모션품격 (2명)
+
+커스텀 추가: `gm_batch.py`의 `GUARDIAN_WORKERS`에 G8+ 추가 가능.
+
+### 5.3 에이전트 병렬 실행 (중량 모드, gm_batch 불가 시)
+
+#### G1 기술 감시단 프롬프트
+
+```
+너는 T9 OS의 기술 감시단이다.
+변경된 파일: {changed_files}
+
+검사 항목:
+1. OWASP Top 10 보안 취약점
+2. 코드 복잡도 / 스파게티 (함수당 30줄 초과, 중첩 3단 이상)
+3. Build vs Buy 위반 (npm/pip에 있는 걸 직접 구현했는가)
+4. 에러 핸들링 누락
+5. API 키/비밀번호 하드코딩
+6. 불필요한 over-engineering
+
+판정: P0(즉시)/P1(세션내)/P2(다음)/P3(참고)
+각 이슈를 한 줄로 요약하고, P0/P1은 수정 코드도 제시.
+```
+
+#### G2-A 비전 감시 프롬프트
+
+```
+너는 T9 OS의 비전 감시단이다.
+프로젝트: {project_name}
+ANCHOR 문서: {anchor_path}
+
+변경된 파일: {changed_files}
+
+검사 항목:
+1. ANCHOR의 필수어가 적절히 사용되고 있는가
+2. ANCHOR의 금지어가 등장하지 않는가
+3. 프로젝트 비전이 축소/왜곡되지 않았는가
+4. 수단이 목적으로 전도되지 않았는가
+5. 사용자(한빈)가 하지 않은 발언이 인용되지 않았는가
+
+판정: CATASTROPHIC / WARNING / CLEAN
+CATASTROPHIC 시 구체적 위치와 수정 방향 제시.
+```
+
+#### G2-B 존재론 감시 프롬프트
+
+```
+너는 T9 OS의 존재론 감시단이다.
+T9 OS는 시몽동 개체화 이론 위에 서 있다.
+참조: T9OS/BIBLE.md, T9OS/constitution/L1_execution.md
+
+변경된 파일: {changed_files}
+
+검사 항목:
+1. 전개체를 삭제/폐기하는 로직이 있는가 (자연에서 전개체는 사라지지 않는다)
+2. 개체화 과정을 건너뛰는 상태 전이가 있는가 (preindividual→archived 등)
+3. 긴장(tension)을 제거 대상으로 취급하고 있는가 (긴장은 개체화의 동력이다)
+4. "완결", "최종", "삭제", "폐기"라는 표현이 시스템 설계에 쓰이고 있는가
+5. 전도적 학습 흐름이 끊기는 지점이 있는가
+
+판정: VIOLATION / DRIFT / ALIGNED
+VIOLATION 시 구체적 위치와 시몽동 원칙에 맞는 대안 제시.
+```
+
+#### G3 규칙 감시단 프롬프트
+
+```
+너는 T9 OS의 규칙 감시단이다.
+L1: T9OS/constitution/L1_execution.md
+L2: T9OS/constitution/L2_interpretation.md
+
+변경된 파일: {changed_files}
+
+검사 항목:
+1. 로그 파일명 형식 준수 (YYYYMMDD_CC/CX_NNN_HHMMSS_작업명.txt)
+2. 원본 데이터 수정 여부 (금지)
+3. Search > Reuse > Buy > Build 순서 준수
+4. 데이터 접근 규칙 (검색 없이 "없다" 판단 금지)
+5. 에이전트 간 파일 겹침 여부
+6. 상태 전이 절차 준수
+7. t9_seed.py 줄 수 (1000줄 상한)
+
+판정: 100점 만점. 감점 사유 명시.
+80점 미만: 수정 필수 항목 제시.
+```
+
+### 5.3 실행 흐름
+
+```
+cc가 코드/문서 작업 완료
+  │
+  ├─ 생략 조건? → YES → 감시단 생략
+  │
+  ├─ 경량 조건? → YES → G1 체크리스트 (cc 내부 실행, ~30초)
+  │                      │
+  │                      ├─ P0 발견? → 중량으로 에스컬레이션
+  │                      └─ PASS → 완료
+  │
+  └─ 중량 조건? → YES → G1 + G2 + G3 병렬 실행 (~2-3분)
+                         │
+                         ├─ P0/CATASTROPHIC → 즉시 수정 후 재실행
+                         └─ PASS → 결과를 로그에 포함
+```
+
+---
+
+## 6. ANCHOR 문서 작성 가이드
+
+새 프로젝트가 Tier 1 또는 비전이 명확한 Tier 2일 때 ANCHOR 문서를 작성한다.
+
+### 위치
 `T9OS/artifacts/{project}/PHILOSOPHY_ANCHOR.md`
 
-### Required Sections
+### 필수 섹션
 
 ```markdown
 # {PROJECT} PHILOSOPHY ANCHOR
 
-## Designer's Original Words (immutable)
-> Direct quotes only. No AI paraphrasing.
+## 한빈의 원문 (변경 불가)
+> 직접 인용만. AI가 재구성한 말 금지.
 
-## Core Vision (1-3 sentences)
-Why this project exists.
+## 핵심 비전 (1-3문장)
+프로젝트가 존재하는 이유.
 
-## Required Words
-Terms that must be used to describe this project.
+## 필수어
+이 단어들로 프로젝트를 설명해야 함.
 
-## Forbidden Words
-Terms that distort the project if used as definitions.
+## 금지어
+이 단어들로 프로젝트를 정의하면 왜곡.
 
-## Technical Judgment Criterion
-"Does this contribute to {core value}?" YES → proceed, NO → stop.
+## 기술적 판단 기준
+"이것이 {핵심 가치}에 기여하는가?" YES면 진행, NO면 중단.
 ```
 
 ---
 
-## 8. Revision History
+## 7. 개정 이력
 
-| Date | Change | Reason |
-|------|--------|--------|
-| 2026-03-16 | v0.1 initial | Extended project-specific guardians to system-wide |
-| 2026-03-17 | v0.2 G2 two-phase | G2-A (vision) + G2-B (ontology) two-step verification |
+| 날짜 | 변경 | 이유 |
+|------|------|------|
+| 2026-03-16 | v0.1 초기 생성 | ODNAR 감시단 3종을 T9OS 전체로 확장 |
+| 2026-03-17 | v0.2 G2 2인 체제 | G2-A(비전) + G2-B(존재론) 2단계 검증. dissolved 폐기 → 시몽동 위반 발견 계기 |
 
-*This document is subject to L3 revision rules. It is an object of modulation, not a permanent form.*
+*이 문서는 L3 개정 규칙의 적용을 받는다. 변조의 대상이지 영구 형태가 아니다.*

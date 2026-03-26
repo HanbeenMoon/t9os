@@ -3,6 +3,28 @@
 All notable changes to T9 OS will be documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.3.0] - 2026-03-26
+
+### Added
+- `pip install t9os` support with `pyproject.toml` (hatchling build)
+- Typer CLI: `t9` command with 24 subcommands
+- `t9 init` wizard for first-time setup (creates XDG dirs, copies templates, initializes DB)
+- XDG-based config (`~/.config/t9os/`) and data (`~/.t9os_data/`) directories
+- `config.toml` support for persistent configuration
+- `src/t9os/` package layout with `engine/`, `lib/`, `pipes/`, `templates/`
+- Dockerfile for containerized deployment
+- `--version` flag
+
+### Changed
+- Restructured from flat layout to `src/` layout (PEP 517/518 compliant)
+- All imports updated from `lib.X` to `t9os.lib.X`
+- Config paths no longer hardcoded; uses environment variables or XDG defaults
+- Engine versioned to v0.3
+
+### Removed
+- Root-level `t9_seed.py`, `t9_viz.py`, `lib/`, `pipes/`, `constitution/`, `telos/`
+  (all moved into `src/t9os/`)
+
 ## [2.1.0] - 2026-03-26
 
 ### Changed
