@@ -11,12 +11,6 @@
 
 Not theoretical. Production-grade.
 
-<p align="center">
-  <img src="docs/images/t9viz-overview.png" alt="T9 OS 3D Visualization — entity graph with urgency clustering" width="800">
-  <br>
-  <em>3D entity visualization — 1,500+ entities rendered as force-directed graph with urgency clustering</em>
-</p>
-
 ---
 
 ## Overview
@@ -25,59 +19,52 @@ T9 OS is a personal operating system layered on top of Claude Code. It replaces 
 
 Everything passes through a 12-state lifecycle engine modeled on Gilbert Simondon's theory of individuation. A raw idea enters as `preindividual`. It becomes `tension_detected` when it conflicts with something else. It moves through `candidate_generated → individuating → stabilized`. Nothing is ever deleted — dissolved entities sink into sediment and remain searchable.
 
-The result: **1,100+ entities tracked**, **47 architectural decisions logged**, **18 pipelines running in production**, **8 scheduled cron jobs** — all operated by a single human who sets direction while the system handles execution, judgment, and verification autonomously.
-
 ### What it looks like in practice
 
 ```
 $ t9 daily
 
-  === T9 OS Seed v0.2 — 2026-03-26 Thursday ===
+  === T9 OS Seed v0.3.0 — Thursday ===
 
   [!] Deadlines:
-    D-1    2026-03-27  Monitoring application deadline
-    D-5    2026-03-31  Monthly work report
-    D-9    2026-04-04  AT1 Finals (Kakao AI Campus)
+    D-3    Client proposal draft
+    D-7    Conference submission
+    D-14   Product launch
 
-  Active: 262 entities
-  Preindividual: 405 | Tension: 167 | Candidate: 18
-  Sediment: 61 — dormant entities, searchable via `t9 search`
+  Active: 142 entities
+  Preindividual: 89 | Tension: 31 | Candidate: 12
+  Sediment: 24 — dormant entities, searchable via `t9 search`
 
-  [Transduction] Patterns extracted from recent archives:
-    [120] SSK research → transferable to [136] ODNAR landing page
-    [165] Paper v9 → transferable to [807] PM3 quickstart
+  [Transduction] Patterns detected:
+    [42] API design research → transferable to [78] SDK architecture
+    [51] User interview notes → transferable to [90] Onboarding flow
 ```
 
-<details>
-<summary><strong>More screenshots</strong></summary>
-<br>
-<p align="center">
-  <img src="docs/images/t9viz-info-panel.png" alt="Entity info panel" width="400">
-  <img src="docs/images/t9viz-urgent-panel.png" alt="Urgency panel" width="400">
-</p>
-</details>
+```
+$ t9 capture "embedding models might be the key — fine-tune on private data, not just API calls"
+
+  Saved: 20260326_embedding_models_might_be_the_key_fi_143022.md
+  Concepts: explore, create
+  [Transduction] Similar entities found:
+    [42] vector search architecture (similarity=1.0, shared=explore)
+```
 
 ---
 
 ## Quick Start
 
 ```bash
-# Clone
-git clone https://github.com/HanbeenMoon/t9os.git
-cd t9os
+# Install
+pip install git+https://github.com/HanbeenMoon/t9os.git
 
-# Set up alias (one line, one time)
-echo 'alias t9="python3 $(pwd)/t9_seed.py"' >> ~/.bashrc && source ~/.bashrc
+# Initialize (creates ~/.config/t9os/ and ~/.t9os_data/)
+t9 init --quick
 
-# Three commands you need
-t9 daily        # What's happening today
-t9 capture "thought or idea"   # Save a preindividual
-t9 status       # Full system overview
-
-# Everything else
-t9 search "query"     # Full-text search across all entities
-t9 transition <id> stabilized "reason"   # Move entity state
-t9 reindex            # Rebuild entity index from filesystem
+# Start using it
+t9 capture "my first idea"    # Save a preindividual
+t9 status                     # Full system overview
+t9 daily                      # Morning briefing
+t9 search "query"             # Full-text search
 ```
 
 ---
@@ -86,46 +73,41 @@ t9 reindex            # Rebuild entity index from filesystem
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  CLAUDE.md — top-level system constitution               │
-│                                                          │
+│  constitution/  — governance layer                       │
 │  ┌─────────────────┐   ┌──────────────┐  ┌───────────┐ │
-│  │ constitution/   │   │ telos/       │  │decisions/ │ │
-│  │ L1 hard rules   │   │ MISSION      │  │ 47 ADRs   │ │
-│  │ L2 transitions  │   │ SIMONDON     │  │           │ │
-│  │ L3 self-amend   │   │ UX_PRINCIPLES│  └───────────┘ │
-│  │ 7 Guardians     │   └──────────────┘                │
+│  │ L1 hard rules   │   │ telos/       │  │decisions/ │ │
+│  │ L2 transitions  │   │ MISSION      │  │ 47 ADRs   │ │
+│  │ L3 self-amend   │   │ SIMONDON     │  │           │ │
+│  │ 7 Guardians     │   └──────────────┘  └───────────┘ │
 │  └────────┬────────┘                                    │
 │           │                                             │
 │    ┌──────▼──────┐                                      │
-│    │ t9_seed.py  │  seed engine — ~900 lines            │
-│    │ SQLite FTS5 │  entity lifecycle, search, IPC       │
+│    │ engine/     │  seed engine — entity lifecycle       │
+│    │ seed.py     │  SQLite FTS5 search, IPC              │
+│    │ states.py   │  12-state machine                     │
 │    └──────┬──────┘                                      │
 │           │                                             │
 │    ┌──────▼──────────────────────────────┐              │
 │    │ pipes/  — 18 production pipelines   │              │
-│    │  gm_batch        guardian batch     │              │
-│    │  t9_ceo_brief    Telegram briefing  │              │
-│    │  calendar_sync   Google Calendar    │              │
-│    │  deadline_notify push alerts        │              │
-│    │  pipeline_composer  auto-routing    │              │
-│    │  session_live_read  JSONL sync      │              │
-│    │  healthcheck     system monitoring  │              │
-│    │  whisper_pipeline  voice → entity   │              │
+│    │  guardian batch    Telegram brief   │              │
+│    │  calendar sync    deadline alerts  │              │
+│    │  healthcheck      voice capture    │              │
+│    │  auto-routing     session sync     │              │
 │    └─────────────────────────────────────┘              │
 │                                                         │
 │  ┌──────────────┐   ┌──────────────────────────┐       │
-│  │ mcp/         │   │ .claude/hooks/            │       │
-│  │ MCP server   │   │ pre-tool-hard-gate.sh     │       │
-│  │ native tools │   │ soft-gate LLM policy      │       │
+│  │ mcp/         │   │ hooks/                    │       │
+│  │ MCP server   │   │ hard gates (bash)         │       │
+│  │ native tools │   │ soft gates (LLM policy)   │       │
 │  └──────────────┘   └──────────────────────────┘       │
 └──────────────────────────────────────────────────────────┘
 
-Entity state machine:
+Entity lifecycle:
   preindividual → tension_detected → candidate_generated
   → individuating → stabilized → archived
-                 → suspended → reactivated
-                 → split / merged
-                 → dissolved (sediment, permanent trace)
+               → suspended → reactivated
+               → split / merged
+               → dissolved (sediment — permanent, searchable)
 ```
 
 ---
@@ -134,24 +116,28 @@ Entity state machine:
 
 | Pipeline | What it does |
 |---|---|
-| `t9_seed.py` | Core engine — entity lifecycle, FTS5 search, state transitions (~900 lines) |
-| `gm_batch.py` | 7-tier Guardian review system — runs Gemini batch against every significant output |
-| `t9_ceo_brief.py` | Daily Telegram briefing — status, urgent items, decisions pending |
-| `calendar_sync.py` | Two-way Google Calendar sync — entities with deadlines auto-appear as events |
-| `deadline_notify.py` | Push alerts on approaching deadlines via Telegram |
-| `pipeline_composer.py` | Classifies and routes raw input to the right pipeline automatically |
-| `session_live_read.py` | Reads Claude Code JSONL sessions in real time — no waiting for session end |
-| `healthcheck.py` | Full system health check — reports to Telegram if anything breaks |
-| `whisper_pipeline.py` | Voice memo → transcription → entity capture |
-| `hwp_convert.py` | HWP document → DOCX conversion with original protection |
-| `t9_auto.py` | Gemini-powered concept extraction from entities |
-| `integrity_check.py` | Cross-checks data consistency across the entity store |
-| `adr_auto.py` | Detects significant commits and auto-generates Architecture Decision Records |
-| `safe_change.sh` | Snapshot → change → smoke test → rollback safety wrapper |
-| `session_lock.py` | Multi-agent session isolation — prevents concurrent writes |
-| `gdrive_upload.py` | Google Drive upload for generated documents and exports |
-| `migration_verify.py` | Validates schema migrations before applying |
-| `cron_runner.sh` | Single cron entrypoint — schedules and logs all 8 timed jobs |
+| `engine/seed.py` | Core engine — entity lifecycle, FTS5 search, state transitions |
+| `pipes/gm_batch.py` | 7-tier Guardian review — Gemini batch against significant outputs |
+| `pipes/telegram_bot.py` | Telegram briefing — status, urgent items, file receiving |
+| `pipes/calendar_sync.py` | Two-way Google Calendar sync |
+| `pipes/deadline_notify.py` | Push alerts on approaching deadlines |
+| `pipes/pipeline_composer.py` | Classifies and routes raw input automatically |
+| `pipes/session_live_read.py` | Reads Claude Code JSONL sessions in real time |
+| `pipes/healthcheck.py` | Full system health check with Telegram alerts |
+| `pipes/whisper_pipeline.py` | Voice memo → transcription → entity capture |
+| `pipes/safe_change.sh` | Snapshot → change → smoke test → rollback wrapper |
+
+---
+
+## What Makes This Different
+
+**Policy hooks as governance.** Hard gates intercept every tool call and block dangerous operations — force push, `rm -rf`, credential access — before they execute. Soft gates run an LLM inline for build-vs-buy decisions and philosophical alignment checks.
+
+**Constitution as code.** Three tiers: L1 defines immutable execution rules. L2 defines transition logic. L3 defines how L1 and L2 can be amended. The system can rewrite its own rules through a governed process. All changes leave ADR traces.
+
+**MCP integration.** The seed engine is exposed as a Model Context Protocol server — Claude Code calls `t9_capture`, `t9_search`, `t9_status` as native tools.
+
+**Philosophy as constraint.** Two of seven Guardians check Simondonian alignment. Code that simplifies ideas into conventional patterns gets flagged the same way security vulnerabilities do.
 
 ---
 
@@ -159,27 +145,14 @@ Entity state machine:
 
 | Layer | Technology |
 |---|---|
-| AI Agents | Claude Code (control tower), Gemini CLI (batch/OCR), Codex (code generation) |
-| Core Engine | Python 3.10+, SQLite with FTS5 full-text search |
-| Protocol | Model Context Protocol (MCP) — seed engine exposed as native Claude tools |
-| Policy Enforcement | Bash hooks (PreToolUse hard gates) + LLM soft gates |
+| AI Agents | Claude Code (orchestration), Gemini (batch/OCR), Codex (generation) |
+| Core Engine | Python 3.10+, SQLite FTS5 |
+| Protocol | Model Context Protocol (MCP) |
+| Policy | Bash hard gates + LLM soft gates |
 | Notifications | Telegram Bot API |
 | Calendar | Google Calendar API (OAuth 2.0) |
 | Voice | OpenAI Whisper |
-| Scheduling | cron + custom cron_runner.sh |
-| Philosophy | Gilbert Simondon — individuation theory as state machine design |
-
----
-
-## What Makes This Different
-
-**Policy hooks as governance.** `pre-tool-hard-gate.sh` intercepts every tool call and blocks dangerous operations — force push, `rm -rf`, credential access — before they execute. Hard rules enforced in Bash; soft rules (build-vs-buy, philosophical alignment) enforced by an LLM running inline.
-
-**Constitution as code.** Three tiers: L1 defines immutable execution rules. L2 defines transition logic and interpretation. L3 defines how L1 and L2 can be amended. The system can rewrite its own rules through a governed process. All changes leave ADR traces.
-
-**MCP integration.** `mcp/t9_seed_server.py` wraps the seed engine as a Model Context Protocol server — Claude Code calls `t9_capture`, `t9_search`, `t9_status` as native tools.
-
-**Philosophy as constraint.** Two of the seven Guardians check Simondonian alignment. Code that simplifies ideas into conventional patterns gets flagged the same way security vulnerabilities do. Without this, AI assistants quietly flatten your thinking.
+| Philosophy | Gilbert Simondon — individuation theory as state machine |
 
 ---
 
@@ -187,17 +160,18 @@ Entity state machine:
 
 ```
 t9os/
-├── t9_seed.py           # seed engine — entity management, search, lifecycle
-├── constitution/        # L1 / L2 / L3 rules + 7 Guardian definitions
-├── telos/               # mission, Simondon mapping, UX principles, learnings
+├── src/t9os/
+│   ├── cli.py           # Typer CLI — 24 commands
+│   ├── engine/          # seed engine + 12-state machine
+│   ├── lib/             # config, parsers, IPC, transduction
+│   ├── pipes/           # production pipelines
+│   └── templates/       # default constitution + config
 ├── decisions/           # 47 Architecture Decision Records
-├── lib/                 # config, logger, parsers, transduction, IPC
-├── pipes/               # 18 production pipelines
-├── mcp/                 # MCP server wrapping t9_seed.py
-├── skills/              # Claude Code skill plugins
-├── demos/               # Standalone demo projects
-├── tests/               # smoke tests (37 checks)
-└── docs/                # hooks examples and guides
+├── demos/               # standalone demo projects
+├── tests/               # smoke tests
+├── docs/                # guides
+├── pyproject.toml       # pip install ready
+└── Dockerfile           # containerized deployment
 ```
 
 ---
