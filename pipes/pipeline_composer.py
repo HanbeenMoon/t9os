@@ -12,7 +12,7 @@
 1. 마감일 키워드 → deadline_notify + urgency 설정
 2. 일정/캘린더 키워드 → calendar_sync
 3. 코드/기술 키워드 → 코드 세션 라우팅
-4. 감정/고민 키워드 → 설계자 대화 플래그
+4. 감정/고민 키워드 → 한빈 대화 플래그
 5. 리서치 키워드 → t9-research
 6. 나머지 → 단순 기록 (이미 capture됨)
 
@@ -29,7 +29,8 @@ import re
 import json
 from datetime import datetime
 
-DB_PATH = os.path.join(os.path.dirname(__file__), '..', '.t9.db')
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from lib.config import DB_PATH
 
 # 분류 규칙 (패턴 → 카테고리)
 RULES = [

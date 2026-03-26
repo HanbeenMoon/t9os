@@ -37,11 +37,11 @@ from typing import Optional
 
 # __file__ 기반 상대 경로 — 하드코딩 없이 어느 PC에서도 동작
 T9 = Path(__file__).resolve().parent.parent      # T9OS/
-WORKSPACE = T9.parent                               # WORKSPACE/
+HANBEEN = T9.parent                               # HANBEEN/
 TRANSCRIPTS_DIR = T9 / "artifacts" / "transcripts"
-RECORDINGS_DIR = WORKSPACE / "PERSONAL" / "recordings"
+RECORDINGS_DIR = HANBEEN / "PERSONAL" / "recordings"
 DB_PATH = T9 / "pipes" / ".whisper_pipeline.db"
-LOGS_DIR = WORKSPACE / "_ai" / "logs" / "cc"
+LOGS_DIR = HANBEEN / "_ai" / "logs" / "cc"
 T9_SEED = T9 / "t9_seed.py"
 
 AUDIO_EXTS = {".mp3", ".m4a", ".wav", ".ogg", ".flac", ".aac", ".wma", ".webm", ".mp4"}
@@ -711,7 +711,7 @@ T9 OS Whisper Pipeline v1.0
 
 예시:
   python3 T9OS/pipes/whisper_pipeline.py transcribe "ML_20260316.m4a"
-  python3 T9OS/pipes/whisper_pipeline.py batch ~/WORKSPACE/PERSONAL/recordings/
+  python3 T9OS/pipes/whisper_pipeline.py batch ~/HANBEEN/PERSONAL/recordings/
   python3 T9OS/pipes/whisper_pipeline.py watch
 """.strip()
 

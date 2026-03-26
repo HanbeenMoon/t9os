@@ -4,25 +4,27 @@
 중복 로드 코드를 각 파이프라인에 두지 않는다.
 
 사용법:
-    from lib.config import GEMINI_KEY, TG_TOKEN, TG_CHAT, WORKSPACE, T9, DB_PATH
+    from lib.config import GEMINI_KEY, TG_TOKEN, TG_CHAT, HANBEEN, T9, DB_PATH
 """
 import os
 from pathlib import Path
 
 # ─── 경로 상수 ────────────────────────────────────────────────
 T9 = Path(__file__).resolve().parent.parent          # T9OS/
-WORKSPACE = T9.parent                                   # ~/code/WORKSPACE/
-DB_PATH = T9 / ".t9.db"
+HANBEEN = T9.parent                                   # ~/code/HANBEEN/
+# DB는 WSL 네이티브 경로 (NTFS 잠금 방지, ADR-074)
+# fallback: T9OS/.t9.db (NTFS, 레거시 호환)
+_WSL_DB = Path.home() / ".t9os_data" / ".t9.db"
+DB_PATH = _WSL_DB if _WSL_DB.exists() else T9 / ".t9.db"
 INBOX_DIR = T9 / "field" / "inbox"
-LOG_DIR = WORKSPACE / "_ai" / "logs" / "cc"
+LOG_DIR = HANBEEN / "_ai" / "logs" / "cc"
 PIPES_DIR = T9 / "pipes"
 
 # ─── 환경변수 로드 (단일 진입점) ──────────────────────────────
-# 우선순위: os.environ > .env.sh > .env.txt > .env.local
+# 단일 소스: _keys/.env.sh (2026-03-23 통합)
+# os.environ이 최우선, 그 다음 .env.sh
 _ENV_FILES = [
-    WORKSPACE / "_keys" / ".env.sh",
-    WORKSPACE / "_keys" / ".env.txt",
-    WORKSPACE / "_legacy" / "PROJECTS" / "t9-dashboard" / ".env.local",
+    HANBEEN / "_keys" / ".env.sh",
 ]
 
 _loaded: dict[str, str] = {}
@@ -65,7 +67,7 @@ def _load_all() -> dict[str, str]:
 
 
 def get(key: str, default: str = "") -> str:
-    """환경변수 조회. os.environ > .env.sh > .env.txt > .env.local 순."""
+    """환경변수 조회. os.environ > _keys/.env.sh 순."""
     return _load_all().get(key, default)
 
 

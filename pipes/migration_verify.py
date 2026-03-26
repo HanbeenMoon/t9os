@@ -6,8 +6,8 @@ import sqlite3
 import sys
 import os
 from datetime import datetime
-
-DB_PATH = os.path.join(os.path.dirname(__file__), '..', '.t9.db')
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from lib.config import DB_PATH
 SNAPSHOT_PATH = os.path.join(os.path.dirname(__file__), '..', '.t9_snapshot.json')
 
 # 동적 스냅샷: 파일에서 로드하거나 기본값 사용

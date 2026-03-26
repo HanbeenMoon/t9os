@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from lib.config import GEMINI_KEY, T9, WORKSPACE, DB_PATH
+from lib.config import GEMINI_KEY, T9, HANBEEN, DB_PATH
 from lib.logger import pipeline_run
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -17,7 +17,7 @@ MODEL = "gemini-3-flash-preview"
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={GEMINI_KEY}"
 
 # T9 OS 프로젝트 목록 (코드로 고정 — Gemini한테 이것만 알려줌)
-PROJECTS = ["T9", "PROJECT_A", "RESEARCH", "COURSEWORK", "CONTEST", "T9D", "t9tb", "PIPELINE", "LEGACY"]
+PROJECTS = ["T9", "ODNAR", "SSK", "SC41", "AT1", "T9D", "t9tb", "PM3", "L2U"]
 
 # 마감/긴급 키워드 (하드 규칙)
 URGENT_KEYWORDS = ["마감", "deadline", "급함", "긴급", "D-", "오늘까지", "내일까지", "ASAP", "즉시"]
@@ -122,7 +122,7 @@ def detect_project_hard(text, filename):
 
 
 # should_archive 제거됨 — G2-B 존재론 감시단 VIOLATION
-# 전개체의 자동 sediment/archive는 L2 위반. 설계자 수동 검토(consolidate)에서만 처리.
+# 전개체의 자동 sediment/archive는 L2 위반. 한빈 수동 검토(consolidate)에서만 처리.
 
 
 # ─── Gemini 소프트 작업 ───

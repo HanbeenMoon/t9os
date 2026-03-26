@@ -24,16 +24,19 @@ from pathlib import Path
 
 # ── Paths ──────────────────────────────────────────────
 BASE = Path(__file__).resolve().parent.parent  # T9OS/
-DB_PATH = BASE / ".t9.db"
+from lib.config import DB_PATH  # WSL 네이티브 DB
 INBOX_DIR = BASE / "field" / "inbox"
 CONSTITUTION_DIR = BASE / "constitution"
 DECISIONS_DIR = BASE / "decisions"
 PIPES_DIR = BASE / "pipes"
 
-WORKSPACE_ROOT = BASE.parent  # ~/code/WORKSPACE/
-CC_LOGS_DIR = WORKSPACE_ROOT / "_ai" / "logs" / "cc"
-CX_LOGS_DIR = WORKSPACE_ROOT / "_ai" / "logs" / "cx"
-T9D_PUBLIC = WORKSPACE_ROOT / "PROJECTS" / "t9-dashboard" / "public"
+HANBEEN_ROOT = BASE.parent  # ~/code/HANBEEN/
+CC_LOGS_DIR = HANBEEN_ROOT / "_ai" / "logs" / "cc"
+CX_LOGS_DIR = HANBEEN_ROOT / "_ai" / "logs" / "cx"
+T9D_PUBLIC = HANBEEN_ROOT / "PROJECTS" / "t9-dashboard" / "public"
+
+sys.path.insert(0, str(BASE))
+from lib.registry import PIPELINE_REGISTRY as _REG
 
 # Valid Simondon phase transitions (from -> set of valid to)
 VALID_PHASES = [
@@ -71,21 +74,8 @@ VALID_TRANSITIONS = {
     "dissolved": {"sediment", "preindividual"},
 }
 
-# Pipeline registry from CLAUDE.md
-PIPELINE_REGISTRY = {
-    "gm_batch.py": "Guardian batch + review",
-    "t9_auto.py": "Preindividual auto-classification",
-    "t9_ceo_brief.py": "CEO Telegram brief",
-    "t9_bot.py": "Telegram bot",
-    "deadline_notify.py": "Deadline notification",
-    "session_lock.py": "Session collision prevention",
-    "tg_common.py": "Telegram common functions",
-    "calendar_sync.py": "Google Calendar sync",
-    "intent_parser.py": "Intent parser (5-axis)",
-    "whisper_pipeline.py": "Whisper transcription",
-    "coursework_cron.py": "Coursework automation",
-    "reproducibility_check.py": "Reproducibility check",
-}
+# Pipeline registry — lib/registry.py 단일 소스 (SRBB)
+PIPELINE_REGISTRY = {p["file"]: p["desc"] for p in _REG}
 
 ADR_REQUIRED_FIELDS = ["날짜", "상태", "결정", "이유"]
 

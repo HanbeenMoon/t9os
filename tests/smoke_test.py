@@ -7,8 +7,10 @@ import sys, os, subprocess, sqlite3, json
 from pathlib import Path
 
 T9 = Path(__file__).resolve().parent.parent
-WORKSPACE = T9.parent
-DB_PATH = T9 / ".t9.db"
+HANBEEN = T9.parent
+# DB: WSL 네이티브 우선, fallback NTFS
+_WSL_DB = Path.home() / ".t9os_data" / ".t9.db"
+DB_PATH = _WSL_DB if _WSL_DB.exists() else T9 / ".t9.db"
 
 PASS, FAIL, SKIP = 0, 0, 0
 
@@ -87,7 +89,7 @@ key_files = [
     "lib/parsers.py", "lib/ipc.py", "lib/transduction.py",
     "pipes/t9_bot.py", "pipes/healthcheck.py", "pipes/cron_runner.sh",
     "pipes/gm_batch.py", "pipes/calendar_sync.py", "pipes/deadline_notify.py",
-    "pipes/t9_ceo_brief.py",
+    "pipes/t9_ceo_brief.py", "pipes/session_live_read.py",
     "constitution/L1_execution.md", "constitution/L2_interpretation.md",
     "constitution/L3_amendment.md", "constitution/GUARDIANS.md",
 ]
@@ -95,7 +97,29 @@ for f in key_files:
     p = T9 / f
     check(f"파일: {f}", p.exists())
 
-# 4. Config imports
+# 4. Cron entries
+print("\n  --- Cron ---")
+rc, out, err = run_cmd(["crontab", "-l"])
+if rc == 0:
+    cron_checks = [
+        ("calendar_sync", "calendar"),
+        ("deadline_notify", "deadline"),
+        ("healthcheck", "healthcheck"),
+        ("ceo_brief", "ceo_brief"),
+        ("sc41", "sc41"),
+        ("t9_auto", "t9_auto"),
+    ]
+    for name, keyword in cron_checks:
+        check(f"cron: {name}", keyword in out)
+else:
+    skip("cron", "crontab 접근 불가")
+
+# 5. systemd service
+print("\n  --- systemd ---")
+rc, out, err = run_cmd(["systemctl", "--user", "is-active", "t9_bot"])
+check("t9_bot 서비스 활성", rc == 0 and "active" in out, out.strip() if rc else err[:50])
+
+# 6. Config imports
 print("\n  --- 모듈 임포트 ---")
 rc, out, err = run_cmd(["python3", "-c", "from lib.config import *; print('OK')"])
 check("lib.config 임포트", rc == 0 and "OK" in out, err[:100] if rc else "")

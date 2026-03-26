@@ -1,0 +1,5 @@
+# Core
+python-telegram-bot[job-queue]>=21.0,<22.0
+
+# Optional: AI-powered intent parsing (set ANTHROPIC_API_KEY to enable)
+# anthropic>=0.40.0

@@ -4,7 +4,7 @@
 - 상태: 채택됨
 - 결정: Dashboard에 `/api/infra` 라우트를 추가하여 GitHub, Notion, local-PC, remote-PC의 연결 상태를 실시간으로 모니터링한다. 각 서비스에 헬스체크 요청을 보내고 응답 여부로 online/offline 판단.
 - 이유:
-  - T9 OS는 여러 외부 서비스(GitHub, Notion, Google Calendar)와 2대의 PC(local, remote)에 의존한다.
+  - T9 OS는 여러 외부 서비스(GitHub, Notion, Google Calendar)와 2대의 PC(서울, remote)에 의존한다.
   - 서비스 장애 시 원인 파악에 시간이 걸린다. 인프라 상태를 한눈에 보면 문제를 즉시 식별할 수 있다.
   - Tailscale로 연결된 PC 상태를 확인하면 원격 작업 가능 여부를 빠르게 판단할 수 있다.
 - 대안:

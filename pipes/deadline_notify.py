@@ -11,13 +11,13 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from lib.config import T9, WORKSPACE
+from lib.config import T9, HANBEEN
 from lib.logger import pipeline_run
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from tg_common import tg_send
 
-STATE_MD = WORKSPACE / ".claude" / "state.md"
+STATE_MD = HANBEEN / ".claude" / "state.md"
 T9_SEED = T9 / "t9_seed.py"
 
 
@@ -34,7 +34,7 @@ def load_deadlines_from_seed():
 
     deadlines = []
     for line in lines:
-        # "D-4    2026-03-24 프로젝트 제출 마감 *긴급*" 패턴
+        # "D-4    2026-03-24 예비창업패키지 신청 마감 *긴급*" 패턴
         m = re.match(r'\s*D-(\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)', line)
         if m:
             delta = int(m.group(1))
@@ -53,7 +53,7 @@ def load_deadlines_from_state():
     deadlines = []
     today = datetime.now().date()
     for line in content.splitlines():
-        # "- **D-5** 2026-03-24 프로젝트 마감" 패턴
+        # "- **D-5** 2026-03-24 예창패 마감" 패턴
         m = re.match(r'\s*-\s+\*\*D-(\d+)\*\*\s+(\d{4}-\d{2}-\d{2})\s+(.+)', line)
         if m:
             delta = int(m.group(1))

@@ -17,34 +17,21 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.config import (
-    T9, WORKSPACE, DB_PATH, GEMINI_KEY, TG_TOKEN, TG_CHAT,
+    T9, HANBEEN, DB_PATH, GEMINI_KEY, TG_TOKEN, TG_CHAT,
     CANVAS_TOKEN, GOOGLE_CLIENT_ID, GOOGLE_REFRESH_TOKEN,
 )
 from lib.logger import get_all_status, _tg_send_raw
+from lib.registry import PIPELINE_REGISTRY, DAEMON_PROCESSES, CRON_IDENTIFIERS
 
-# ─── 체크 항목 정의 ──────────────────────────────────────────
-
-PIPELINES = [
-    {"name": "t9_seed.py", "path": T9 / "t9_seed.py", "type": "engine"},
-    {"name": "t9_bot.py", "path": T9 / "pipes" / "t9_bot.py", "type": "daemon"},
-    {"name": "t9_auto.py", "path": T9 / "pipes" / "t9_auto.py", "type": "cron"},
-    {"name": "gm_batch.py", "path": T9 / "pipes" / "gm_batch.py", "type": "manual"},
-    {"name": "deadline_notify.py", "path": T9 / "pipes" / "deadline_notify.py", "type": "cron"},
-    {"name": "ceo_brief.py", "path": T9 / "pipes" / "t9_ceo_brief.py", "type": "cron"},
-    {"name": "calendar_sync.py", "path": T9 / "pipes" / "calendar_sync.py", "type": "cron"},
-    {"name": "coursework_cron.py", "path": T9 / "pipes" / "coursework_cron.py", "type": "cron"},
-    {"name": "integrity_check.py", "path": T9 / "pipes" / "integrity_check.py", "type": "check"},
-    {"name": "session_lock.py", "path": T9 / "pipes" / "session_lock.py", "type": "lib"},
-    {"name": "tg_common.py", "path": T9 / "pipes" / "tg_common.py", "type": "lib"},
-    {"name": "adr_auto.py", "path": T9 / "pipes" / "adr_auto.py", "type": "hook"},
-    {"name": "whisper_pipeline.py", "path": T9 / "pipes" / "whisper_pipeline.py", "type": "manual"},
-]
+# ─── 체크 항목 정의 (lib/registry.py 단일 소스) ────────────────
+# SRBB: 레지스트리를 여기서 중복 정의하지 않고 registry.py에서 가져옴
+PIPELINES = [{"name": p["file"], "path": p["path"], "type": p["type"]} for p in PIPELINE_REGISTRY]
 
 REQUIRED_KEYS = [
     ("TG_TOKEN", TG_TOKEN, "텔레그램 봇"),
     ("TG_CHAT", TG_CHAT, "텔레그램 챗"),
     ("GEMINI_KEY", GEMINI_KEY, "Gemini API (t9_auto, gm_batch)"),
-    ("CANVAS_TOKEN", CANVAS_TOKEN, "Canvas LMS (coursework)"),
+    ("CANVAS_TOKEN", CANVAS_TOKEN, "Canvas LMS (sc41)"),
     ("GOOGLE_CLIENT_ID", GOOGLE_CLIENT_ID, "Google Calendar"),
     ("GOOGLE_REFRESH_TOKEN", GOOGLE_REFRESH_TOKEN, "Google Calendar"),
 ]
@@ -120,7 +107,7 @@ def check_cron() -> list[dict]:
         ("ceo_brief", "ceo_brief"),
         ("t9_auto", "t9_auto"),
         ("calendar_sync", "calendar"),
-        ("coursework_cron", "coursework"),
+        ("sc41_cron", "sc41"),
         ("tidy", "tidy"),
     ]
     for name, pattern in expected_cron:

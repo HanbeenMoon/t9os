@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 
 T9 = Path(__file__).resolve().parent.parent
-DB_PATH = T9 / ".t9.db"
+from lib.config import DB_PATH  # WSL 네이티브 DB
 FIELD = T9 / "field" / "inbox"
 DEADLINE_CANDIDATES = [
     T9.parent / "_legacy" / "_notion_dump" / "T9_마감일.txt",

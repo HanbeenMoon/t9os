@@ -7,7 +7,7 @@ from datetime import datetime
 
 # 공통 모듈에서 텔레그램 함수 임포트
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from tg_common import tg_send, tg_updates, tg_download_file, CHAT_ID, T9, WORKSPACE
+from tg_common import tg_send, tg_updates, tg_download_file, CHAT_ID, T9, HANBEEN
 
 PIDFILE = T9 / ".t9bot.pid"
 LOCKFILE = T9 / ".t9bot.lock"
@@ -32,7 +32,7 @@ def run_t9(cmd):
     try:
         r = subprocess.run(
             ["python3", str(T9 / "t9_seed.py")] + shlex.split(cmd),
-            capture_output=True, text=True, timeout=30, cwd=str(WORKSPACE)
+            capture_output=True, text=True, timeout=30, cwd=str(HANBEEN)
         )
         return (r.stdout + r.stderr).strip() or "(출력 없음)"
     except subprocess.TimeoutExpired:
@@ -46,7 +46,7 @@ def run_cc(question):
     try:
         r = subprocess.run(
             ["claude", "-p", question],
-            capture_output=True, text=True, timeout=300, cwd=str(WORKSPACE)
+            capture_output=True, text=True, timeout=300, cwd=str(HANBEEN)
         )
         return (r.stdout + r.stderr).strip()[:3500] or "(응답 없음)"
     except subprocess.TimeoutExpired:
@@ -92,7 +92,7 @@ def handle_voice(file_id, chat_id):
     try:
         r = subprocess.run(
             ["python3", str(T9 / "pipes" / "whisper_pipeline.py"), "transcribe", str(local_path)],
-            capture_output=True, text=True, timeout=600, cwd=str(WORKSPACE)
+            capture_output=True, text=True, timeout=600, cwd=str(HANBEEN)
         )
         output = (r.stdout + r.stderr).strip()
         transcripts_dir = T9 / "artifacts" / "transcripts"

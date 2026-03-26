@@ -1,7 +1,6 @@
-"""Google OAuth2 스코프 재설정 — Drive + Calendar 통합 토큰 발급.
+"""Google OAuth2 스코프 재설정 — 전체 권한 통합 토큰 발급.
 
-기존 refresh token이 Calendar 스코프만 포함하여 Drive API 403 발생 시,
-이 스크립트로 Drive + Calendar 스코프를 모두 포함한 새 refresh token을 발급받는다.
+localhost 리다이렉트 방식. 브라우저 인증 → 자동 코드 수신 → 토큰 발급.
 
 Usage:
     python3 T9OS/pipes/google_oauth_setup.py
@@ -9,10 +8,13 @@ Usage:
 
 from __future__ import annotations
 
+import http.server
 import json
 import sys
+import threading
 import urllib.parse
 import urllib.request
+import webbrowser
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -20,20 +22,62 @@ from lib.config import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 
 SCOPES = [
     "https://www.googleapis.com/auth/calendar",
-    "https://www.googleapis.com/auth/drive.file",
+    "https://www.googleapis.com/auth/drive",           # 전체 Drive (파일+댓글+공유문서)
+    "https://www.googleapis.com/auth/documents",       # Google Docs
+    "https://www.googleapis.com/auth/spreadsheets",    # Google Sheets
+    "https://www.googleapis.com/auth/presentations",   # Google Slides
+    "https://www.googleapis.com/auth/gmail.modify",    # Gmail 읽기+보내기
+    "https://www.googleapis.com/auth/tasks",           # Google Tasks
+    "https://www.googleapis.com/auth/contacts.readonly",  # 연락처 조회
 ]
 
 AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 TOKEN_URL = "https://oauth2.googleapis.com/token"
-REDIRECT_URI = "urn:ietf:wg:oauth:2.0:oob"
+PORT = 8085
+REDIRECT_URI = f"http://localhost:{PORT}"
+
+# 콜백으로 받은 코드 저장
+_auth_code: str | None = None
+_auth_error: str | None = None
+
+
+class _CallbackHandler(http.server.BaseHTTPRequestHandler):
+    """OAuth2 콜백 수신 핸들러."""
+
+    def do_GET(self):
+        global _auth_code, _auth_error
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+
+        if "code" in qs:
+            _auth_code = qs["code"][0]
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(b"<h1>OK</h1><p>Google OAuth2 complete. Close this tab.</p>")
+        else:
+            _auth_error = qs.get("error", ["unknown"])[0]
+            self.send_response(400)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(f"<h1>Error: {_auth_error}</h1>".encode())
+
+    def log_message(self, format, *args):
+        pass  # suppress logs
 
 
 def main() -> int:
+    global _auth_code, _auth_error
+
     if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
         print("ERROR: GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET 미설정")
         return 1
 
-    # 1) Authorization URL 생성
+    # 1) 로컬 서버 시작
+    server = http.server.HTTPServer(("127.0.0.1", PORT), _CallbackHandler)
+    thread = threading.Thread(target=server.handle_request, daemon=True)
+    thread.start()
+
+    # 2) 인증 URL 생성 + 브라우저 오픈
     params = urllib.parse.urlencode({
         "client_id": GOOGLE_CLIENT_ID,
         "redirect_uri": REDIRECT_URI,
@@ -45,26 +89,38 @@ def main() -> int:
     auth_url = f"{AUTH_URL}?{params}"
 
     print("=" * 60)
-    print("Google OAuth2 스코프 재설정")
-    print(f"스코프: {', '.join(SCOPES)}")
+    print("Google OAuth2 — 전체 권한 재설정")
+    print(f"스코프: {len(SCOPES)}개")
+    for s in SCOPES:
+        print(f"  - {s.split('/')[-1]}")
     print("=" * 60)
     print()
-    print("아래 URL을 브라우저에서 열어 인증하세요:")
+    print("브라우저가 자동으로 열립니다. 안 열리면 아래 URL 복붙:")
     print()
     print(auth_url)
     print()
 
-    # 2) Authorization code 입력
-    code = input("인증 후 받은 authorization code를 입력: ").strip()
-    if not code:
-        print("ERROR: code가 비어있음")
+    webbrowser.open(auth_url)
+
+    # 3) 콜백 대기
+    print("인증 대기 중...")
+    thread.join(timeout=120)
+    server.server_close()
+
+    if _auth_error:
+        print(f"ERROR: 인증 실패 — {_auth_error}")
+        return 1
+    if not _auth_code:
+        print("ERROR: 타임아웃 (2분). 다시 실행해주세요.")
         return 1
 
-    # 3) Code → refresh token 교환
+    print("인증 코드 수신 완료!")
+
+    # 4) Code → refresh token 교환
     data = urllib.parse.urlencode({
         "client_id": GOOGLE_CLIENT_ID,
         "client_secret": GOOGLE_CLIENT_SECRET,
-        "code": code,
+        "code": _auth_code,
         "grant_type": "authorization_code",
         "redirect_uri": REDIRECT_URI,
     }).encode()
@@ -85,20 +141,20 @@ def main() -> int:
     scope = body.get("scope", "")
 
     if not refresh_token:
-        print(f"ERROR: refresh_token이 응답에 없음. 응답: {json.dumps(body, indent=2)}")
+        print(f"ERROR: refresh_token 없음. 응답: {json.dumps(body, indent=2)}")
         return 1
 
     print()
     print("=" * 60)
-    print("새 refresh token 발급 완료")
+    print("새 refresh token 발급 완료!")
     print(f"스코프: {scope}")
     print("=" * 60)
     print()
     print(f"GOOGLE_REFRESH_TOKEN={refresh_token}")
     print()
-    print("위 값을 _keys/.env.txt의 GOOGLE_REFRESH_TOKEN에 업데이트하세요.")
+    print("위 값을 _keys/.env.sh의 GOOGLE_REFRESH_TOKEN에 업데이트하세요.")
 
-    # 검증: access token으로 Drive API 접근 테스트
+    # 검증
     if access_token:
         print()
         print("Drive API 접근 테스트 중...")

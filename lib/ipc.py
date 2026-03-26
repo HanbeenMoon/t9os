@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 T9 = Path(__file__).resolve().parent.parent
-DB_PATH = T9 / ".t9.db"
+from lib.config import DB_PATH  # WSL 네이티브 DB
 SESSION_FILE = Path.home() / ".t9_current_session"
 WORKING_MD = T9.parent / ".claude" / "WORKING.md"
 
@@ -54,11 +54,15 @@ def _now():
 
 def _pid_alive(pid):
     """PID가 살아있는지 확인 (Linux)"""
+    if pid is None:
+        return False
     try:
         os.kill(pid, 0)
         return True
-    except (ProcessLookupError, PermissionError, OSError):
+    except ProcessLookupError:
         return False
+    except PermissionError:
+        return True  # 권한 없을 뿐, 프로세스는 살아있음
 
 # ─── 세션 관리 ─────────────────────────────────────────────────
 
@@ -115,14 +119,14 @@ def session_list():
     conn.close()
 
 def _cleanup_stale(conn):
-    """PID가 죽은 active 세션 → crashed 처리 + 잠금 해제 + 모든 고아 잠금 정리"""
+    """PID가 죽은 active 세션 → crashed 처리 + 잠금 해제 + ended 세션 잔여 잠금 정리"""
     active = conn.execute("SELECT id, pid FROM sessions WHERE status='active'").fetchall()
     for sid, pid in active:
         if pid and not _pid_alive(pid):
             conn.execute("UPDATE sessions SET status='crashed', ended_at=? WHERE id=?", (_now(), sid))
             released = conn.execute("DELETE FROM file_locks WHERE session_id=?", (sid,)).rowcount
             print(f"  ⚠️ stale 세션 정리: {sid} (PID {pid} 죽음, 잠금 {released}건 해제)")
-    # ended/crashed 세션의 잔여 잠금 정리
+    # ended/crashed 세션의 잔여 잠금도 정리 (session-end 백그라운드 실패 시 남은 것)
     orphaned = conn.execute("""
         DELETE FROM file_locks WHERE session_id IN (
             SELECT id FROM sessions WHERE status IN ('ended', 'crashed')
@@ -130,37 +134,17 @@ def _cleanup_stale(conn):
     """).rowcount
     if orphaned:
         print(f"  ⚠️ 고아 잠금 정리: {orphaned}건 (종료된 세션)")
-    # 핵심 수정: sessions 테이블에 존재하지 않는 세션의 잠금도 정리
-    # (세션 등록 없이 post-tool-use가 만든 잠금, 또는 세션 행 유실)
-    ghost = conn.execute("""
-        DELETE FROM file_locks WHERE session_id NOT IN (
-            SELECT id FROM sessions WHERE status = 'active'
-        )
-    """).rowcount
-    if ghost:
-        print(f"  ⚠️ 유령 잠금 정리: {ghost}건 (비활성 세션)")
-    # 7일 지난 pending 메시지 자동 만료
-    week_ago = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
-    expired_msgs = conn.execute(
-        "UPDATE messages SET status='expired' WHERE status='pending' AND created_at < ?",
-        (week_ago,)
-    ).rowcount
-    if expired_msgs:
-        print(f"  ⚠️ 오래된 메시지 만료: {expired_msgs}건 (7일 초과)")
     conn.commit()
 
 # ─── 메시지 ────────────────────────────────────────────────────
 
 def msg_send(from_sid, to_sid, msg_type, subject, body="", priority="normal"):
     conn = _db()
-    # 모든 메시지에 기본 만료 설정 — 영구 pending 방지
+    expires = None
     if msg_type in ("lock", "unlock", "alert"):
         expires = (datetime.now() + timedelta(hours=24)).strftime("%Y-%m-%d %H:%M:%S")
     elif msg_type == "work_progress":
         expires = (datetime.now() + timedelta(hours=6)).strftime("%Y-%m-%d %H:%M:%S")
-    else:
-        # broadcast, discovery, session_end 등 → 3일 만료
-        expires = (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d %H:%M:%S")
     conn.execute(
         "INSERT INTO messages (from_session, to_session, type, subject, body, priority, created_at, expires_at) VALUES (?,?,?,?,?,?,?,?)",
         (from_sid, to_sid if to_sid != "all" else None, msg_type, subject, body, priority, _now(), expires)
@@ -211,13 +195,6 @@ def msg_act(msg_id, session_id):
 def lock_acquire(session_id, filepath, operation="edit"):
     conn = _db()
     try:
-        # 요청 세션이 active인지 검증 — 죽은 세션이 잠금 만드는 것 방지
-        requester = conn.execute("SELECT status, pid FROM sessions WHERE id=?", (session_id,)).fetchone()
-        if requester:
-            if requester[0] != 'active':
-                return False  # ended/crashed 세션은 잠금 불가
-            if requester[1] and not _pid_alive(requester[1]):
-                return False  # PID 죽은 세션은 잠금 불가
         existing = conn.execute("SELECT session_id, locked_at FROM file_locks WHERE filepath=?", (filepath,)).fetchone()
         if existing:
             if existing[0] == session_id:

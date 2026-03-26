@@ -77,8 +77,7 @@ def cmd_daily(get_db, find_deadline_file_fn):
 
     urgent = conn.execute(
         "SELECT id,filename FROM entities WHERE phase NOT IN ('archived','sediment','dissolved') "
-        "AND (urgency='high' "
-        "OR metadata LIKE '%urgent%' OR metadata LIKE '%긴급%' OR metadata LIKE '%\"high\"%')"
+        "AND urgency='high'"
     ).fetchall()
     if urgent:
         print(f"  [!!] 긴급 ({len(urgent)}건):")

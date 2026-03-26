@@ -3,13 +3,13 @@
 Fetches today's and tomorrow's events from Google Calendar via OAuth2
 and writes an MD file into field/inbox/ for t9_seed.py reindex.
 
-Required env vars (from _legacy/PROJECTS/t9-dashboard/.env.local or .bashrc):
+Required env vars (from _keys/.env.sh via lib/config.py):
     GOOGLE_CLIENT_ID
     GOOGLE_CLIENT_SECRET
     GOOGLE_REFRESH_TOKEN
 
 Usage (cron):
-    30 7 * * * /path/to/workspace/T9OS/pipes/cron_runner.sh calendar
+    30 7 * * * /mnt/c/Users/winn/HANBEEN/T9OS/pipes/sc41_cron_runner.sh calendar
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.config import (
-    WORKSPACE, INBOX_DIR, LOG_DIR, T9,
+    HANBEEN, INBOX_DIR, LOG_DIR, T9,
     GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN,
 )
 
@@ -201,7 +201,7 @@ def main() -> int:
             [sys.executable, str(T9_SEED), "reindex"],
             capture_output=True,
             text=True,
-            cwd=str(WORKSPACE),
+            cwd=str(HANBEEN),
             timeout=120,
         )
         log(f"reindex exit code: {result.returncode}")

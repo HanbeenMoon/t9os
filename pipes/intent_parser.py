@@ -7,8 +7,8 @@ BIBLE.md + L2_interpretation.md 5축 해석 체계 구현.
 t9_seed.py의 DB를 활용해 과거 엔티티 검색.
 
 Usage:
-    python3 T9OS/pipes/intent_parser.py "research paper chapter 5 results table needs redo urgent"
-    python3 T9OS/pipes/intent_parser.py --json "PROJECT_A MVP deploy"
+    python3 T9OS/pipes/intent_parser.py "SSK 논문 5장 분석결과 표 다시 만들어야해 급해"
+    python3 T9OS/pipes/intent_parser.py --json "ODNAR MVP 배포"
 """
 from __future__ import annotations
 
@@ -26,8 +26,9 @@ from typing import Optional
 # intent_parser.py 는 T9OS/pipes/ 에 위치 → 2단계 상위가 T9OS 루트
 _THIS_FILE = Path(__file__).resolve()
 T9 = _THIS_FILE.parent.parent          # T9OS/
-WORKSPACE = T9.parent                   # WORKSPACE/
-DB_PATH = T9 / ".t9.db"
+HANBEEN = T9.parent                   # HANBEEN/
+sys.path.insert(0, str(T9))
+from lib.config import DB_PATH  # WSL 네이티브 DB
 
 # ---- 데이터 클래스 --------------------------------------------------------
 
@@ -51,7 +52,7 @@ class ParsedIntent:
     constraints: list[str]             # 마감/예산/체력 등
     artifact: str                      # 예상 산출물 유형
     urgency: str                       # high/mid/low
-    project: str                       # project name
+    project: str                       # SSK/ODNAR/T9/...
     disparation: Optional[dict] = None # {"dim_a": ..., "dim_b": ...}
     confidence: float = 0.0            # 해석 신뢰도 0~1
     plans: list[Plan] = field(default_factory=list)
@@ -92,7 +93,7 @@ INTENT_KW = {
     "create":  _s("만들 구현 개발 build create 코딩 작성 생성 설계 구축 세팅 셋업 setup deploy 배포 초안 변환 자동화 파이프 스크립트"),
     "explore": _s("조사 탐색 리서치 explore research 분석 검색 찾아 알아 확인 비교 검토 살펴 파악 읽어"),
     "solve":   _s("해결 수정 fix solve 버그 오류 debug 고치 에러 복구 패치 hotfix 문제 안됨 안돼 깨짐"),
-    "earn":    _s("수익 돈 earn 매출 사업 투자 지원금 펀딩 공모 대회 상금"),
+    "earn":    _s("수익 돈 earn 매출 사업 투자 지원금 펀딩 예창패 공모 대회 상금"),
     "express": _s("발표 쓰기 express 글 에세이 보고서 논문 PPT 슬라이드 정리 요약 문서화"),
     "become":  _s("공부 배우 become 성장 학습 연습 트레이닝 스터디 강의 수업 과제"),
 }
@@ -110,7 +111,7 @@ RESOURCE_KW = {
     "시간": _s("시간 분 hour min 오늘 내일 이번주"),
     "토큰": _s("토큰 token API 호출"),  "돈": _s("원 달러 비용 결제 유료 무료 구독"),
     "파일": _s("파일 폴더 경로 데이터 CSV JSON xlsx PDF do파일 dta"),
-    "사람": _s("멘토 교수 팀원 조원 collaborator advisor"),
+    "사람": _s("동우 일두 석준 성호 워니 멘토 교수 팀원 조원"),
     "도구": _s("Stata Python Next.js Supabase Claude GPT Gemini Docker GitHub Notion 텔레그램"),
     "지식": _s("논문 레퍼런스 문서 매뉴얼 가이드"),
     "GPU":  _s("GPU CUDA RTX VRAM"),
@@ -138,13 +139,13 @@ ARTIFACT_KW = {
 
 # 프로젝트 (CLAUDE.md 기반)
 PROJECT_KW = {
-    "RESEARCH": _s("research paper thesis analysis data statistics methodology review"),
-    "PROJECT_A": _s("ontology vector embedding database MVP prototype platform"),
-    "COURSEWORK": _s("class assignment canvas exam grade recording group semester"),
+    "SSK":   _s("SSK 논문 특허 임금 패널 Stata 산업 학부연구 MDIS 계량 동우 일두 RA"),
+    "ODNAR": _s("ODNAR 온톨로지 벡터 임베딩 Supabase 예창패 석준 MVP unknown"),
+    "SC41":  _s("수업 과제 캔버스 Canvas 시험 성적 녹음 조별 4학년 학기"),
     "T9":    _s("T9 시몽동 개체화 오케스트레이션 헌법 BIBLE seed t9_seed 파이프라인"),
-    "COMPETITION": _s("contest competition challenge"), "TSUM": _s("TSUM finetuning LoRA model"),
-    "PIPELINE": _s("pipeline automation academic"), "LEGACY": _s("legacy watcher queue"),
-    "T9D":   _s("T9D dashboard Dashboard Vercel"), "EXTERNAL": _s("external stablecoin reference"),
+    "AT1":   _s("AT1 배틀 본선"), "TSUM": _s("TSUM 멘토 파인튜닝 LoRA FinBot 박성호 T-SUM"),
+    "PM3":   _s("PM3 PMILL 학술"), "L2U": _s("L2U watcher 큐"),
+    "T9D":   _s("T9D 대시보드 Dashboard Vercel"), "한민혁": _s("한민혁 스테이블코인 레퍼런스트리"),
 }
 
 # 긴급도
@@ -164,8 +165,8 @@ OPPOSITION_PAIRS = [
 
 # 에이전트 배정
 AGENT_RULES = {
-    "RESEARCH": "cc", "PROJECT_A": "cc+cx", "COURSEWORK": "cx", "T9": "cc",
-    "COMPETITION": "cc", "TSUM": "cx",
+    "SSK": "cc", "ODNAR": "cc+cx", "SC41": "cx", "T9": "cc",
+    "AT1": "cc", "TSUM": "cx",
 }
 
 

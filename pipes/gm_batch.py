@@ -33,10 +33,25 @@ from datetime import datetime
 
 # API 키 로드 — lib/config.py 단일 소스
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from lib.config import GEMINI_KEY
+from lib.config import GEMINI_KEY, OPENAI_KEY
 
+# 엔진 플래그: gm (Gemini, 기본) 또는 cx (OpenAI/Codex)
+# 한빈이 주 단위로 결정. 설정 파일 또는 CLI로 지정.
+_ENGINE_FILE = Path(__file__).resolve().parent.parent / ".guardian_engine"
+_ENGINE = "gm"
+
+def _load_engine():
+    """설정 파일에서 현재 엔진 로드. 없으면 gm."""
+    if _ENGINE_FILE.exists():
+        return _ENGINE_FILE.read_text().strip() or "gm"
+    return "gm"
 
 def get_client():
+    if _ENGINE == "cx":
+        return None  # codex CLI는 subprocess로 호출, 클라이언트 불필요
+    return _get_gemini_client()
+
+def _get_gemini_client():
     from google import genai
     if not GEMINI_KEY:
         print("ERROR: GEMINI_API_KEY not found", file=sys.stderr)
@@ -148,9 +163,10 @@ REVIEWER_PRESETS = {
             "name": "비전정합성검사자",
             "instruction": (
                 "당신은 프로젝트 비전 정합성 검사 전문가입니다.\n"
-                "프로젝트별 ANCHOR 문서의 필수어/금지어를 기준으로 비전 정합성을 검사합니다.\n"
-                "각 프로젝트에 정의된 필수어 사용 여부와 금지어 부재를 검증.\n"
-                "연구 프로젝트: 실증적 방법론 엄수. '~임을 증명했다'는 금지어.\n"
+                "ODNAR: '개인 온톨로지 인프라'이지 '메모 앱'이 아님. "
+                "필수어(개인 온톨로지, 기의 번역, 개체화, 나도 모르는 나) 사용 여부와 "
+                "금지어(메모 앱, Notion/Obsidian 카테고리 경쟁) 부재를 검증.\n"
+                "SSK: 실증적 방법론 엄수. '~임을 증명했다'는 금지어.\n"
                 "T9OS: '완결된 시스템', '최종 버전'은 금지어.\n"
                 "각 프로젝트 비전이 희석/왜곡/전도되었는지 판정하세요."
             ),
@@ -237,18 +253,21 @@ GUARDIAN_WORKERS = {
                 "name": "G2_필수어확인",
                 "instruction": (
                     "너는 필수어 확인 담당이다. 다음 텍스트에서 프로젝트 필수어가 적절히 사용되고 있는지 확인하라.\n"
-                    "프로젝트별 ANCHOR 문서에 정의된 필수어 목록을 기준으로 확인하라.\n"
+                    "ODNAR 필수어: 개인 온톨로지, 도넛의 빈 곳, 아크릴판, 겹침, 포착, "
+                    "나도 모르는 나, unknown unknowns, 인간-AI-AI-인간, 거울/mirror\n"
                     "각 필수어의 등장 횟수와 맥락을 보고하라.\n"
-                    "핵심 필수어가 0회면 WARNING."
+                    "핵심 필수어(개인 온톨로지, unknown unknowns, 거울)가 0회면 WARNING."
                 ),
             },
             {
                 "name": "G2_비전축소감지",
                 "instruction": (
                     "너는 비전 축소 감지기다.\n"
-                    "프로젝트 비전이 다층 구조인 경우, 표면 기능만 설명하고 핵심/궁극 비전을 누락하면 CATASTROPHIC.\n"
-                    "중간 층까지만 설명하면 WARNING.\n"
-                    "전체 비전이 언급되면 CLEAN.\n"
+                    "ODNAR의 비전: 3층 구조 — 1층(트로이목마:제로마찰메모), "
+                    "2층(핵심:개인온톨로지→도넛빈곳감지), 3층(궁극:온톨로지간AI번역→인간소통).\n"
+                    "이 텍스트가 ODNAR를 1층(메모앱)으로만 설명하고 있으면 CATASTROPHIC.\n"
+                    "2층까지만 설명하면 WARNING.\n"
+                    "3층까지 언급하면 CLEAN.\n"
                     "구체적으로 어디서 축소가 발생하는지 인용과 함께 보고."
                 ),
             },
@@ -256,10 +275,10 @@ GUARDIAN_WORKERS = {
                 "name": "G2_원문왜곡감지",
                 "instruction": (
                     "너는 원문 왜곡 감지기다.\n"
-                    "설계자가 직접 한 말과, AI가 재구성한 말을 구분하라.\n"
-                    "설계자 원문 패턴: 인용부호(\"> ...\")로 표시되거나 '설계자의 원문 (변경 불가)' 아래.\n"
-                    "AI가 설계자의 말인 것처럼 쓴 부분이 있으면 WARNING.\n"
-                    "설계자가 사용한 적 없는 표현을 설계자 말처럼 인용하면 CATASTROPHIC."
+                    "한빈(CEO)이 직접 한 말과, AI가 재구성한 말을 구분하라.\n"
+                    "한빈 원문 패턴: 인용부호(\"> ...\")로 표시되거나 '한빈의 원문 (변경 불가)' 아래.\n"
+                    "AI가 한빈의 말인 것처럼 쓴 부분이 있으면 WARNING.\n"
+                    "한빈이 사용한 적 없는 표현을 한빈 말처럼 인용하면 CATASTROPHIC."
                 ),
             },
         ],
@@ -742,6 +761,148 @@ def cmd_review(args):
         print(f"\n배치 제출 완료. 나중에 확인: python3 {__file__} status --job {job.name}")
 
 
+def _run_guardian_openai(client, model, requests, worker_names, combined):
+    """Codex CLI(GPT Plus 구독)로 감시단 실행 — G별 1회 호출 (토큰 최적화).
+
+    이전: worker 19명 × 전체 파일 = 19번 codex exec (토큰 폭탄)
+    이후: G별로 worker 지시를 합쳐서 1번 호출 = 최대 7번 (G1~G7)
+    """
+    import concurrent.futures
+    import subprocess
+    import re as _re
+
+    # G별로 worker를 그룹핑
+    groups = {}  # {"G1": [(idx, name, instruction), ...], ...}
+    for idx, (req, name) in enumerate(zip(requests, worker_names)):
+        # name 형식: "G1_G1_보안스캐너" → G_id = "G1"
+        g_id = name.split("_")[0] if "_" in name else "G?"
+        instruction = req["config"]["system_instruction"]["parts"][0]["text"]
+        groups.setdefault(g_id, []).append((idx, name, instruction))
+
+    results = [None] * len(requests)
+
+    def call_group(g_id, workers):
+        """하나의 G를 한 번의 codex exec로 처리"""
+        # 모든 worker 지시를 합쳐서 하나의 프롬프트로
+        role_instructions = []
+        for _, name, instruction in workers:
+            role_instructions.append(f"### {name}\n{instruction}")
+
+        merged_roles = "\n\n".join(role_instructions)
+        prompt = (
+            f"당신은 {g_id} 감시단입니다. 아래 {len(workers)}개 역할을 동시에 수행하세요.\n"
+            f"각 역할별로 독립적인 판정을 내리세요.\n\n"
+            f"{merged_roles}\n\n"
+            f"---\n\n"
+            f"다음 파일들을 검사하라. 각 역할별 결과를 JSON 배열로 출력하라.\n"
+            f"형식: [{{\"worker\": \"이름\", \"verdict\": \"PASS/FAIL/WARNING\", \"findings\": [...]}}]\n\n"
+            f"{combined}"
+        )
+        try:
+            r = subprocess.run(
+                ["codex", "exec", prompt],
+                capture_output=True, text=True,
+                cwd=str(Path(__file__).resolve().parent.parent.parent)
+            )
+            text = (r.stdout or "").strip()
+
+            # JSON 배열 파싱 시도
+            try:
+                json_match = _re.search(r'\[[\s\S]*\]', text)
+                if json_match:
+                    parsed = json.loads(json_match.group())
+                    if isinstance(parsed, list):
+                        # worker 매핑
+                        for i, (idx, name, _) in enumerate(workers):
+                            if i < len(parsed):
+                                result = parsed[i] if isinstance(parsed[i], dict) else {"raw": str(parsed[i])[:2000]}
+                                result["worker"] = name
+                                results[idx] = result
+                            else:
+                                results[idx] = {"worker": name, "result": {"raw": "응답 누락"}}
+                        return
+            except (json.JSONDecodeError, TypeError):
+                pass
+
+            # 배열 파싱 실패 → 단일 객체 시도
+            try:
+                json_match = _re.search(r'\{[\s\S]*\}', text)
+                if json_match:
+                    parsed = json.loads(json_match.group())
+                    # 모든 worker에 같은 결과 할당
+                    for idx, name, _ in workers:
+                        results[idx] = {"worker": name, "result": parsed}
+                    return
+            except (json.JSONDecodeError, TypeError):
+                pass
+
+            # 파싱 전부 실패 → raw text
+            for idx, name, _ in workers:
+                results[idx] = {"worker": name, "result": {"raw": text[:2000]}}
+
+        except Exception as e:
+            for idx, name, _ in workers:
+                results[idx] = {"worker": name, "error": str(e)}
+
+    # G별 병렬 실행 (최대 7개 스레드)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(groups), 7)) as executor:
+        futures = {executor.submit(call_group, g_id, workers): g_id
+                   for g_id, workers in groups.items()}
+        for future in concurrent.futures.as_completed(futures):
+            g_id = futures[future]
+            try:
+                future.result()
+                worker_count = len(groups[g_id])
+                print(f"  ✓ {g_id} ({worker_count}명) 완료")
+            except Exception as e:
+                print(f"  ✗ {g_id} 실패: {e}")
+
+    return results
+
+
+def _save_guardian_results(results, worker_names, selected, ts, args):
+    """감시단 결과를 CEO 브리프로 저장"""
+    log_dir = Path(__file__).resolve().parent.parent.parent / "_ai" / "logs" / "gm"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    brief_path = log_dir / f"{ts}_guardian_brief.md"
+
+    lines = [f"# 감시단 결과 (엔진: {_ENGINE})", f"**일시**: {ts}", f"**감시단**: {', '.join(selected)}", ""]
+    p0_count = 0
+
+    for r in results:
+        worker = r.get("worker", "unknown")
+        lines.append(f"## {worker}")
+        if "error" in r:
+            lines.append(f"**ERROR**: {r['error']}")
+        else:
+            result = r.get("result", {})
+            if isinstance(result, dict):
+                verdict = result.get("verdict", result.get("판정", ""))
+                findings = result.get("findings", result.get("issues", result.get("발견", [])))
+                lines.append(f"**판정**: {verdict}")
+                if findings and isinstance(findings, list):
+                    for f in findings:
+                        if isinstance(f, dict):
+                            sev = f.get("severity", f.get("심각도", ""))
+                            desc = f.get("description", f.get("내용", str(f)))
+                            lines.append(f"- [{sev}] {desc}")
+                            if sev in ("P0", "CATASTROPHIC"):
+                                p0_count += 1
+                        else:
+                            lines.append(f"- {f}")
+                elif isinstance(result.get("raw"), str):
+                    lines.append(result["raw"][:500])
+            else:
+                lines.append(str(result)[:500])
+        lines.append("")
+
+    lines.insert(3, f"**P0/CATASTROPHIC**: {p0_count}건\n")
+    brief_path.write_text("\n".join(lines), encoding="utf-8")
+    print(f"\n결과 저장: {brief_path}")
+    if p0_count:
+        print(f"⚠️ P0/CATASTROPHIC {p0_count}건 발견!")
+
+
 def cmd_guardian(args):
     """감시단 하위 직원 배치 실행"""
     client = get_client()
@@ -753,8 +914,8 @@ def cmd_guardian(args):
         if not p.exists():
             print(f"SKIP: {fpath} not found", file=sys.stderr)
             continue
-        text = p.read_text(encoding="utf-8", errors="replace")[:100000]
-        contents.append(f"=== 파일: {p.name} ===\n{text}")
+        text = p.read_text(encoding="utf-8", errors="replace")[:30000]  # 토큰 최적화
+        contents.append(f"=== 파일: {p.name} ({len(text)}자) ===\n{text}")
 
     if not contents:
         print("ERROR: 검사할 파일 없음", file=sys.stderr)
@@ -807,17 +968,24 @@ def cmd_guardian(args):
             requests.append(req)
             worker_names.append(f"{gid}_{worker['name']}")
 
-    print(f"감시단 {len(selected)}개, 하위직원 {len(requests)}명 배치 실행")
+    print(f"감시단 {len(selected)}개, 하위직원 {len(requests)}명 배치 실행 (엔진: {_ENGINE})")
     for gid in selected:
         g = GUARDIAN_WORKERS.get(gid)
         if g:
             workers = [w["name"] for w in g["workers"]]
             print(f"  {gid} {g['name']}: {', '.join(workers)}")
 
-    model = args.model or "gemini-3-flash-preview"
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     display_name = f"guardian-{'-'.join(selected)}-{ts}"
 
+    if _ENGINE == "cx":
+        # OpenAI/Codex 엔진: 개별 호출 (배치 API 대신 병렬 호출)
+        model = args.model or "o4-mini"  # codex CLI는 모델 지정 불필요 (--full-auto로 제어)
+        results = _run_guardian_openai(client, model, requests, worker_names, combined)
+        _save_guardian_results(results, worker_names, selected, ts, args)
+        return
+
+    model = args.model or "gemini-3-flash-preview"
     job = submit_inline_batch(client, model, requests, display_name)
 
     if not args.no_wait:
@@ -1039,8 +1207,9 @@ def cmd_cancel(args):
 # ─── CLI ───
 
 def main():
-    parser = argparse.ArgumentParser(description="gm_batch — Gemini Batch API 래퍼")
-    parser.add_argument("--model", "-m", default=None, help="모델 (기본: gemini-3-flash-preview)")
+    parser = argparse.ArgumentParser(description="gm_batch — Gemini/OpenAI Batch API 래퍼")
+    parser.add_argument("--model", "-m", default=None, help="모델 (기본: 엔진에 따라 자동)")
+    parser.add_argument("--engine", "-e", choices=["gm", "cx"], default="gm", help="엔진: gm(Gemini), cx(OpenAI/Codex)")
     parser.add_argument("--poll-interval", type=int, default=10, help="폴링 간격(초)")
     parser.add_argument("--no-wait", action="store_true", help="제출만 하고 폴링 안 함")
     parser.add_argument("--output", "-o", default=None, help="출력 경로 (확장자 제외)")
@@ -1091,6 +1260,13 @@ def main():
     if not args.command:
         parser.print_help()
         sys.exit(1)
+
+    # 엔진 설정: CLI 플래그 > 설정 파일 > 기본값(gm)
+    global _ENGINE
+    if args.engine != "gm":  # CLI에서 명시적으로 지정한 경우
+        _ENGINE = args.engine
+    else:
+        _ENGINE = _load_engine()  # 설정 파일에서 로드
 
     cmd_map = {
         "guardian": cmd_guardian,

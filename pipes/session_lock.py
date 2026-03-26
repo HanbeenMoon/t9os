@@ -17,24 +17,24 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 T9 = Path(__file__).resolve().parent.parent
-WORKSPACE = T9.parent
+HANBEEN = T9.parent
 LOCKS_JSON = T9 / ".session_locks.json"
 SESSION_FILE = Path.home() / ".t9_current_session"
 
 # 프로젝트 → 파일 패턴 매핑 (소프트코딩: JSON 설정 파일에서 오버라이드 가능)
 _DEFAULT_PROJECT_PATTERNS = {
-    "project-alpha": ["PROJECTS/project-alpha/*", "T9OS/artifacts/project_alpha/*"],
-    "research":      ["PROJECTS/research/*", "T9OS/artifacts/research_*/*"],
-    "T9":            ["T9OS/t9_seed.py", "T9OS/lib/*", "T9OS/pipes/*",
-                      "T9OS/constitution/*", "T9OS/telos/*", "T9OS/config/*",
-                      ".claude/*"],
-    "T9D":           ["PROJECTS/t9-dashboard/*"],
-    "coursework":    ["PERSONAL/academic/*", "T9OS/artifacts/coursework_*/*"],
-    "pipeline":      ["PROJECTS/pipeline/*", "T9OS/artifacts/pipeline_*/*"],
-    "legacy-bot":    ["T9OS/pipes/t9_bot.py", "T9OS/pipes/whisper_pipeline.py"],
-    "model-proj":    ["T9OS/artifacts/model_*/*"],
-    "Dashboard":     ["PROJECTS/t9-dashboard/*"],
-    "competition":   ["T9OS/artifacts/competition_*/*"],
+    "ODNAR":      ["PROJECTS/ODNAR/*", "T9OS/artifacts/odnar_*/*"],
+    "SSK":        ["PROJECTS/SSK_RA/*", "T9OS/artifacts/ssk_*/*"],
+    "T9":         ["T9OS/t9_seed.py", "T9OS/lib/*", "T9OS/pipes/*",
+                   "T9OS/constitution/*", "T9OS/telos/*", "T9OS/config/*",
+                   ".claude/*"],
+    "T9D":        ["PROJECTS/t9-dashboard/*"],
+    "SC41":       ["PERSONAL/academic/*", "T9OS/artifacts/sc41_*/*"],
+    "PM3":        ["PROJECTS/PM3/*", "T9OS/artifacts/pm3_*/*"],
+    "L2U":        ["T9OS/pipes/t9_bot.py", "T9OS/pipes/whisper_pipeline.py"],
+    "FinBot":     ["T9OS/artifacts/finbot_*/*"],
+    "Dashboard":  ["PROJECTS/t9-dashboard/*"],
+    "AT1":        ["T9OS/artifacts/at1_*/*"],
 }
 
 HEARTBEAT_TIMEOUT_MIN = 30
@@ -377,7 +377,7 @@ def sync_working_md() -> None:
     _cleanup_stale(data)
     sessions = data.get("sessions", {})
 
-    working_md = WORKSPACE / ".claude" / "WORKING.md"
+    working_md = HANBEEN / ".claude" / "WORKING.md"
     if not working_md.exists():
         return
 

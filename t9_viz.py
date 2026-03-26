@@ -25,7 +25,11 @@ from pathlib import Path
 # Paths & DB
 # ---------------------------------------------------------------------------
 BASE = Path(__file__).resolve().parent
-DB_PATH = BASE / ".t9.db"
+try:
+    from lib.config import DB_PATH
+except ImportError:
+    _WSL_DB = Path.home() / ".t9os_data" / ".t9.db"
+    DB_PATH = _WSL_DB if _WSL_DB.exists() else BASE / ".t9.db"
 OUT_PATH = BASE / "artifacts" / "dashboard.html"
 
 PHASE_ORDER = ["preindividual", "individuating", "stabilized",

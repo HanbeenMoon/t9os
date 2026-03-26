@@ -8,19 +8,19 @@
 #   cron_runner.sh ceo_brief
 #   cron_runner.sh t9_auto
 #   cron_runner.sh calendar
-#   cron_runner.sh coursework
+#   cron_runner.sh sc41
 #   cron_runner.sh tidy
 #   cron_runner.sh healthcheck
 
 set -euo pipefail
 
-WORKSPACE="${T9OS_WORKSPACE:-/path/to/workspace}"
-T9="${WORKSPACE}/T9OS"
+HANBEEN="/mnt/c/Users/winn/HANBEEN"
+T9="${HANBEEN}/T9OS"
 PIPES="${T9}/pipes"
-LOG_DIR="${WORKSPACE}/_ai/logs/cc"
+LOG_DIR="${HANBEEN}/_ai/logs/cc"
 
 # 환경변수 로드 (백업 — config.py가 이미 파일에서 읽지만 os.environ도 채워줌)
-[ -f "${WORKSPACE}/_keys/.env.sh" ] && source "${WORKSPACE}/_keys/.env.sh"
+[ -f "${HANBEEN}/_keys/.env.sh" ] && source "${HANBEEN}/_keys/.env.sh"
 
 MODE="${1:-help}"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
@@ -38,17 +38,33 @@ case "$MODE" in
     calendar)
         python3 "${PIPES}/calendar_sync.py" >> "${LOG_DIR}/calendar_cron.log" 2>&1
         ;;
-    coursework)
-        python3 "${PIPES}/coursework_cron.py" >> "${LOG_DIR}/coursework_cron.log" 2>&1
+    sc41)
+        python3 "${PIPES}/sc41_cron.py" >> "${LOG_DIR}/sc41_cron.log" 2>&1
         ;;
     tidy)
+        # tidy = 주간 정비 (일/수 10:00)
+        # 1. 기존 tidy (inbox→active/archived 정리)
         python3 "${T9}/t9_seed.py" tidy >> "${LOG_DIR}/tidy_cron.log" 2>&1
+        # 2. 고아 엔티티 자동 정리
+        python3 "${T9}/t9_seed.py" orphans --fix >> "${LOG_DIR}/tidy_cron.log" 2>&1
+        # 3. 아카이브→메모리 통합
+        python3 "${T9}/t9_seed.py" consolidate >> "${LOG_DIR}/tidy_cron.log" 2>&1
+        # 4. FTS5 인덱스 재구축 (검색 정합성 유지)
+        python3 "${T9}/t9_seed.py" rebuild-fts >> "${LOG_DIR}/tidy_cron.log" 2>&1
         ;;
     healthcheck|health)
         python3 "${PIPES}/healthcheck.py" --tg >> "${LOG_DIR}/healthcheck_cron.log" 2>&1
         ;;
+    db_sync)
+        # WSL 네이티브 DB → NTFS 복사 (Syncthing 동기화용)
+        WSL_DB="/home/winn/.t9os_data/.t9.db"
+        NTFS_DB="${T9}/.t9.db.sync"
+        if [ -f "$WSL_DB" ]; then
+            cp "$WSL_DB" "$NTFS_DB" 2>/dev/null && echo "[$(date)] DB sync OK" >> "${LOG_DIR}/db_sync.log"
+        fi
+        ;;
     *)
-        echo "Usage: $0 {deadline_notify|ceo_brief|t9_auto|calendar|coursework|tidy|healthcheck}"
+        echo "Usage: $0 {deadline_notify|ceo_brief|t9_auto|calendar|sc41|tidy|healthcheck}"
         exit 1
         ;;
 esac
