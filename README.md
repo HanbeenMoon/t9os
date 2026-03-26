@@ -66,7 +66,7 @@ Core capabilities:
 - **Guardian system** — 7 AI reviewers that check every significant output: tech quality, philosophical alignment (2-stage), rule compliance, reproducibility, UX, and integration
 - **MCP server** — the seed engine exposed as a Model Context Protocol server, so Claude Code calls it as a native tool rather than shelling out
 - **Multi-agent orchestration** — cc (Claude Code) as control tower, cx (Codex) for bulk code generation, gm (Gemini) for OCR and batch work
-- **Architecture Decision Records** — 66 ADRs documenting every significant design choice, each mapped to a Simondonian phase
+- **Architecture Decision Records** — 61 ADRs documenting every significant design choice, each mapped to a Simondonian phase
 
 ---
 
@@ -80,7 +80,7 @@ Core capabilities:
 │                                                   │
 │  ┌─────────────┐  ┌─────────────┐  ┌──────────┐ │
 │  │ constitution │  │    telos     │  │ decisions│ │
-│  │ L1 L2 L3    │  │ MISSION     │  │ 66 ADRs  │ │
+│  │ L1 L2 L3    │  │ MISSION     │  │ 61 ADRs  │ │
 │  │ GUARDIANS   │  │ SIMONDON    │  │          │ │
 │  └──────┬──────┘  │ GOALS       │  └──────────┘ │
 │         │         │ MODELS      │                 │
@@ -233,7 +233,7 @@ Core features (capture, search, daily, transitions) work entirely offline with z
 If you just want to study the design:
 
 1. **Constitution** — `src/t9os/templates/constitution/` — self-amending 3-tier rule system
-2. **ADRs** — `docs/decisions/` — 47 real architectural decisions with Simondonian phase metadata
+2. **ADRs** — `docs/decisions/` — 61 architectural decisions with Simondonian phase metadata
 3. **Seed engine** — `src/t9os/engine/seed.py` — entity lifecycle with SQLite FTS
 
 ---
