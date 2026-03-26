@@ -1,10 +1,12 @@
-# ADR-041: Logging Standard Format
+# ADR-041: 로깅 표준 파일명 형식 확립
 
-- Date: 2026-02-21
-- Status: Accepted
-- Decision: All work logs follow `YYYYMMDD_AGENT_NNN_HHMMSS_taskname.txt` format. Logs must include task name, start/end time, commands executed, results, and files created/modified.
-- Rationale: Consistent log format enables automated parsing, cross-session search, and retrospective analysis.
-- Outcome: Standardized log format across all agents
+- 날짜: 2026-02-21 (초기 규칙), 2026-03-13 (cc 로그 규칙 추가)
+- 상태: 채택됨
+- 결정: 모든 작업 로그를 `YYYYMMDD_CC/CX_NNN_(식별자)_HHMMSS_작업명.txt` 형식으로 저장한다. cc 로그는 `_ai/logs/cc/`, cx 로그는 `_ai/logs/cx/`에 저장한다. 로그에는 작업명, 시작/종료 시각, 실행한 명령, 결과, 생성/수정 파일 목록을 필수 포함한다.
+- 이유: 초기에는 파일명 규칙이 불통일(001_cc_xxx, CC_001_xxx 등 혼재). 소급 rename(20260221_CX_013)으로 기존 로그 전량을 통일 형식으로 변환. cc 완료 로그가 누락되는 문제도 규칙 추가로 해결.
+- 대안: 자유 형식 (검색/정렬 불가), DB 저장 (파일 직접 열람 불가), JSON 로그 (사람이 읽기 어려움)
+- 결과: cc ~472건, cx ~323건 로그가 일관된 형식으로 축적. 날짜+도구+순번으로 즉시 정렬 가능
+- 출처: 20260221_CC_010_135307_rule_update_notepad.txt, 20260221_CX_013_180524_setup_log_rules.txt, 20260313_CC_006_215916_CLAUDE로그규칙추가.txt
 
 ## Simondon Mapping
-Reproducibility of individuation — logs are the trace that allows past individuations to be reconstructed and learned from.
+형태의 전도적 전파(transduction): 하나의 명명 규칙이 cc/cx 양쪽에 동시에 전파되어 전체 로그 아카이브의 구조적 일관성을 형성.

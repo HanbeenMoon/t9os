@@ -1,10 +1,12 @@
-# ADR-058: Deploy, Don't Just Implement
+# ADR-058: 구현만 하지 마라 — 테스트+배포+가동확인까지가 완료
 
-- Date: 2026-03-17
-- Status: Accepted
-- Decision: Implementation is not complete until test + deploy + operational verification are done. "Implemented" is not "done." "Running in production" is "done."
-- Rationale: Code that isn't deployed has zero value. The gap between implementation and deployment is where most work dies.
-- Outcome: `constitution/DEPLOY_CHECKLIST.md`
+- 날짜: 2026-03-17
+- 상태: 채택됨
+- 결정: 코드/파이프라인 구현 후 반드시 테스트 + 배포 + 가동 확인까지 수행해야 "완료"로 인정한다. "구현했습니다"만으로는 작업 미완.
+- 이유: 구현 후 배포를 잊거나 미루면 죽은 코드가 축적됨. T9D 배포 미완(DEPLOYMENT_CHECKLIST 전체 unchecked) 사례에서 코드는 있지만 가동되지 않는 상태가 지속됨.
+- 대안: 구현만으로 완료 인정 (죽은 코드 축적)
+- 결과: memory/feedback_deploy_not_implement.md, L1 규칙에 반영
+- 출처: memory/feedback_deploy_not_implement.md
 
 ## Simondon Mapping
-Stabilization in Simondon's terms requires an artifact — code without deployment is individuation without stabilization.
+개체화의 완결성: 코드라는 씨앗 결정이 실제 가동(배포)이라는 환경과의 결합을 통해서만 진정한 기술적 개체로 개체화됨. 배포 없는 구현은 미완의 전개체.

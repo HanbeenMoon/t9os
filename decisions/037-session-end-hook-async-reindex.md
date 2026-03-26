@@ -1,10 +1,12 @@
-# ADR-037: Async Session-End Hook
+# ADR-037: 세션 종료 훅 비동기화 — reindex 분리
 
-- Date: 2026-03-17
-- Status: Accepted
-- Decision: Remove reindex from session-end hook or run it in background (subshell + disown). Remove `set -e` so individual failures don't abort the entire hook.
-- Rationale: Synchronous reindex during session-end blocks the terminal for 10-30 seconds, creating poor UX.
-- Outcome: Background reindex in `session-end.sh`
+- 날짜: 2026-03-17
+- 상태: 채택됨
+- 결정: session-end.sh 훅에서 reindex를 제거하거나 서브셸+disown으로 백그라운드 실행한다. set -e도 제거하여 개별 실패가 전체 훅을 중단시키지 않게 한다.
+- 이유: reindex가 35초 걸려서 Claude Code 훅 타임아웃(~30초)에 걸림. "Hook cancelled" 오류로 세션 종료 시 데이터 저장이 실패하는 심각한 버그.
+- 대안: 타임아웃 증가 요청 (Claude Code 측 제어 불가), reindex 최적화 (근본적으로 343건 파싱은 시간 소요)
+- 결과: 훅 실행 0.064초로 단축, 감시단 G1 PASS/G2 CLEAN/G3 92점
+- 출처: 20260317_CC_003_032503_야간자율작업_인프라정비.txt, 20260317_b52cb8f9.md (세션 대화)
 
 ## Simondon Mapping
-UX concretization — reducing friction in the session lifecycle mirrors the Zero Decision principle.
+연합 환경의 안정화: 세션 종료라는 경계 조건에서 동기/비동기 처리를 분리하여 시스템 안정성 확보.

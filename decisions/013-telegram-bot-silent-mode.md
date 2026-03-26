@@ -1,10 +1,21 @@
-# ADR-013: Telegram Bot Silent Inbox Mode
+# ADR-013: 텔레그램 봇 기본 동작 — 무응답 inbox 저장
 
-- Date: 2026-03-19
-- Status: Accepted
-- Decision: Default Telegram bot behavior is silent inbox capture — all messages stored as preindividuals in `field/inbox/`, no bot response. Only explicit commands (/status, /daily) get responses.
-- Rationale: Telegram is the fastest input channel while mobile. Minimizing friction is essential. Bot responses create conversational expectations; Telegram is an input channel, not a chat interface.
-- Outcome: `pipes/t9_bot.py` with silent capture mode
+- 날짜: 2026-03-19
+- 상태: 채택됨
+- 결정: 텔레그램 봇(@T9_bot)의 기본 동작을 무응답 inbox 저장으로 변경한다. 설계자이 보내는 모든 메시지를 `T9OS/field/inbox/`에 전개체로 저장하되, 봇은 응답하지 않는다. 명시적 명령(/status, /daily 등)만 응답한다.
+- 이유:
+  - 텔레그램은 설계자이 이동 중 가장 빠르게 입력할 수 있는 채널이다. 마찰을 최소화해야 한다.
+  - 봇이 매번 응답하면 대화형 인터페이스 기대가 생긴다. 텔레그램은 입력 채널이지 대화 채널이 아니다.
+  - "저장만 하지 마라" 원칙은 유지: 저장 후 cc 세션 시작 시 inbox를 읽고 처리한다.
+  - 카카오톡 나에게보내기와 동일한 UX — 보내고 잊는다. 시스템이 알아서 처리한다.
+- 대안:
+  - **항상 응답**: 대화형 기대 유발, 봇 품질 기대 높아짐 — 폐기.
+  - **확인 응답만**: "저장됨" 한 줄도 노이즈. 읽씹이 가장 깔끔 — 폐기.
+  - **텔레그램 미사용**: 이동 중 입력 채널 부재 — 폐기.
+- 결과:
+  - `pipes/t9_bot.py`의 기본 핸들러를 무응답 + inbox 저장으로 구현.
+  - 명령어 핸들러(/status, /daily)는 별도 유지.
+  - 저장된 전개체는 `t9_seed.py capture`와 동일한 메타데이터 부여.
 
 ## Simondon Mapping
-Zero Decision UX — capture without classification mirrors the preindividual's resistance to premature form-imposition.
+이 결정이 시몽동의 어떤 원리를 구현하는가: 전개체 수집 채널 확장 (마찰 최소화) — 전개체(잠재적 입력)가 시스템에 유입되는 경로를 넓히되, 수집 과정의 마찰을 제거하여 잠재성이 유실되지 않게 한다.

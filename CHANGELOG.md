@@ -6,31 +6,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [0.3.0] - 2026-03-26
 
 ### Added
-- `pip install t9os` support with `pyproject.toml` (hatchling build)
-- Typer CLI: `t9` command with 24 subcommands
-- `t9 init` wizard for first-time setup (creates XDG dirs, copies templates, initializes DB)
-- XDG-based config (`~/.config/t9os/`) and data (`~/.t9os_data/`) directories
-- `config.toml` support for persistent configuration
-- `src/t9os/` package layout with `engine/`, `lib/`, `pipes/`, `templates/`
-- Dockerfile for containerized deployment
-- `--version` flag
+- **pip install support** — `pip install git+https://github.com/HanbeenMoon/t9os.git`
+- **Typer CLI** with 24 commands, auto-completion, `--help` for everything
+- **`t9 init --quick`** — interactive setup wizard, creates config + data dirs + DB
+- **src/ layout** — proper Python package structure (`src/t9os/`)
+- **pyproject.toml** with hatchling build, optional extras (`[telegram]`, `[calendar]`, `[gemini]`)
+- **XDG config** — `~/.config/t9os/` for settings, `~/.t9os_data/` for data
+- **Template system** — default constitution and telos shipped with package, copied on init
+- **Dockerfile** for containerized deployment
+- **Environment variable overrides** — `T9OS_CONFIG_DIR`, `T9OS_DATA_DIR`, `T9OS_DB_PATH`
 
 ### Changed
-- Restructured from flat layout to `src/` layout (PEP 517/518 compliant)
-- All imports updated from `lib.X` to `t9os.lib.X`
-- Config paths no longer hardcoded; uses environment variables or XDG defaults
-- Engine versioned to v0.3
+- All imports refactored from `lib.X` to `t9os.lib.X`
+- Config paths are now XDG-compliant (no more hardcoded paths)
+- Core commands work with zero API keys (capture, search, daily, transitions)
+- All documentation and code comments in English
 
 ### Removed
-- Root-level `t9_seed.py`, `t9_viz.py`, `lib/`, `pipes/`, `constitution/`, `telos/`
-  (all moved into `src/t9os/`)
-
-## [2.1.0] - 2026-03-26
-
-### Changed
-- Full English localization of all documentation, ADRs, and code comments
-- ADR set curated to 47 architecture-relevant decisions (removed personal/project-specific ADRs)
-- README rewritten with Quick Start section and updated metrics
+- Personal/project-specific ADRs (SSK, ODNAR, SC41, etc.)
+- Internal design documents (BIBLE.md, V2 research synthesis)
+- Korean language from all files
 
 ## [2.0.0] - 2026-03-23
 
@@ -39,14 +34,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - Guardian system with 7 specialized AI reviewers (G1-G7)
 - Legal theory integration (non-retroactivity, judicial independence, reliance protection)
 - PreToolUse policy hooks enforcing hard safety gates
-- Orient Layer Architecture (OLA) for structured soft gates
 - MCP server for seed engine (t9_seed_server.py)
 - Multi-session IPC with file locking
-- 47 Architecture Decision Records
+- 62 Architecture Decision Records
 - Telegram bot with voice transcription pipeline
 - Gemini batch processing for guardian reviews
 - Simondon state machine with 12 entity states
-- Session live-read from JSONL (no conversion wait)
 
 ### Changed
 - Seed engine rewritten with full-text search (SQLite FTS5)

@@ -1,10 +1,12 @@
-# ADR-054: Preindividual Auto-Processing
+# ADR-054: 전개체 자동 처리 — 저장만 하지 마라
 
-- Date: 2026-03-16
-- Status: Accepted
-- Decision: When raw input arrives, automatically: (1) save original to inbox, (2) register via seed engine, (3) apply deadline urgency, (4) relate to existing entities. "Don't just save — read, understand, and act."
-- Rationale: Passive storage is grep, not an intelligent system. The seed engine must actively process preindividuals.
-- Outcome: Auto-processing pipeline in capture flow
+- 날짜: 2026-03-16 (v0.2 규칙)
+- 상태: 채택됨
+- 결정: 설계자이 전개체(카톡 나에게보내기, 메모, 영감 등)를 입력하면 (1) 원본 inbox 저장, (2) t9_seed.py idea로 등록, (3) 마감일 반영, (4) 프로젝트 연관 relate까지 묻지 않고 즉시 처리한다. "저장만 하지 마라 — 읽고 이해하고 행동."
+- 이유: 초기에는 전개체를 inbox에 저장만 하고 방치하는 패턴이 반복됨. 설계자 피드백: "전개체는 저장만 하지 마라. 프로젝트 연료. 반영까지."
+- 대안: 저장만 하고 주기적 리뷰 (방치됨), 설계자이 직접 분류 (UX 원칙 위반)
+- 결과: CLAUDE.md "전개체 입력 처리" 섹션, L1에 자동 처리 규칙, t9_auto.py(Gemini Flash 기반 자동 분류) 파이프라인
+- 출처: memory/feedback_braindump_actionable.md, CLAUDE.md 전개체 입력 처리 섹션
 
 ## Simondon Mapping
-The seed engine must actively detect disparation in preindividuals — not just store them but sense their tensions.
+전개체에서 개체로의 자동 전이: 과포화된 입력(전개체)에 자동으로 씨앗 결정을 도입하여 개체화를 촉발. 방치=잠재성의 소멸.

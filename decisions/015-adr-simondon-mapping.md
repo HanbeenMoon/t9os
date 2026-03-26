@@ -1,10 +1,21 @@
-# ADR-015: Mandatory Simondon Mapping in ADRs
+# ADR-015: ADR 시몽동 매핑 필드 의무화
 
-- Date: 2026-03-19
-- Status: Accepted
-- Decision: Every ADR must include a `## Simondon Mapping` section explaining which Simondonian principle the technical decision implements, in one sentence.
-- Rationale: T9 OS implements Simondon's philosophy as software. Without explicit philosophical grounding, ADRs record only surface-level reasons (performance, convenience) and lose the ontological rationale.
-- Outcome: All ADRs 001+ include Simondon Mapping section
+- 날짜: 2026-03-19
+- 상태: 채택됨
+- 결정: 모든 ADR에 `## Simondon Mapping` 섹션을 의무적으로 포함한다. 기술적 결정이 시몽동의 어떤 원리를 구현하는지 한 문장으로 명시한다. 기존 ADR 001~010에도 이미 적용 완료.
+- 이유:
+  - T9 OS는 시몽동 철학을 소프트웨어로 구현하는 시스템이다. 기술 결정이 철학과 분리되면 "왜 이렇게 만들었는가"의 근본 이유가 사라진다.
+  - ADR은 "결정의 이유"를 기록하는 문서인데, 시몽동 매핑 없이는 표면적 이유(성능, 편의)만 남고 철학적 근거가 유실된다.
+  - 새 세션이 ADR을 읽을 때 시몽동 매핑이 있으면 T9 OS의 설계 철학을 동시에 학습할 수 있다.
+  - adr_auto.py로 자동 생성 시 시몽동 매핑은 빈칸(TODO)으로 남기고 cc가 채운다 — 자동화와 판단의 분리.
+- 대안:
+  - **매핑 없이 순수 기술 ADR**: 철학과 기술의 괴리 누적 — 폐기.
+  - **별도 철학 문서**: ADR과 분리되면 참조 안 함 — 폐기.
+  - **자동 매핑**: LLM이 시몽동 매핑을 자동 생성하면 피상적 — cc 수동 작성이 적절.
+- 결과:
+  - ADR 템플릿에 `## Simondon Mapping` 섹션 포함.
+  - `adr_auto.py` 자동 생성 시 TODO 표시.
+  - INDEX.md에 시몽동 키워드 컬럼 추가 검토(향후).
 
 ## Simondon Mapping
-Meta-individuation — this ADR itself is about ensuring that each technical individuation (decision) maintains its connection to the philosophical field from which it emerged.
+이 결정이 시몽동의 어떤 원리를 구현하는가: 기술적 결정(랑그)과 철학적 원리(파롤)의 명시적 연결 — 모든 기술적 구조물(개체)이 자신의 철학적 기원(전개체적 긴장)을 명시함으로써, 시스템 전체의 일관성(메타안정성)을 유지한다.
