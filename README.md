@@ -10,7 +10,9 @@ A personal operating system built on top of Claude Code, grounded in Gilbert Sim
 
 T9 OS turns an AI coding assistant into a full life-and-work orchestration layer. It manages tasks, decisions, projects, and knowledge — not through rigid categories, but through a state machine modeled on how things actually come into being.
 
-[![demo](https://asciinema.org/a/3oAJ2fpx5B5Yf9No.svg)](https://asciinema.org/a/3oAJ2fpx5B5Yf9No)
+<p align="center">
+  <img src="docs/demo.svg" alt="T9 OS demo — init, capture, status, search, daily" width="700">
+</p>
 
 Built by a non-developer using philosophical intuition and AI pair programming. This is not production software. It is one person's answer to the question: *what if your operating system understood that ideas start as tension, not as tickets?*
 
@@ -250,7 +252,7 @@ If you just want to study the design:
 
 ## License
 
-Not yet decided. The code is being shared for transparency and as a reference architecture. If you find something useful, take it.
+[Apache License 2.0](LICENSE)
 
 ---
 
