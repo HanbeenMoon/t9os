@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""T9 OS 헬스체크 — 모든 파이프라인 상태를 한눈에.
+"""T9 OS — pipeline state.
 
-session-start.sh에서 자동 호출. 문제 있으면 즉시 표시.
+session-start.shauto call. .
 
-사용법:
-    python3 T9OS/pipes/healthcheck.py          # 터미널 출력
-    python3 T9OS/pipes/healthcheck.py --json    # JSON 출력
-    python3 T9OS/pipes/healthcheck.py --tg      # 문제 있으면 텔레그램 알림
+Usage:
+    python3 T9OS/pipes/healthcheck.py          # output
+    python3 T9OS/pipes/healthcheck.py --json    # JSON output
+    python3 T9OS/pipes/healthcheck.py --tg      # Telegram notification
 """
 import json
 import os
@@ -23,13 +23,13 @@ from lib.config import (
 from lib.logger import get_all_status, _tg_send_raw
 from lib.registry import PIPELINE_REGISTRY, DAEMON_PROCESSES, CRON_IDENTIFIERS
 
-# ─── 체크 항목 정의 (lib/registry.py 단일 소스) ────────────────
-# SRBB: 레지스트리를 여기서 중복 정의하지 않고 registry.py에서 가져옴
+# ─── item definition (lib/registry.py single source) ────────────────────────────────────────
+# SRBB: duplicate definitionregistry.py
 PIPELINES = [{"name": p["file"], "path": p["path"], "type": p["type"]} for p in PIPELINE_REGISTRY]
 
 REQUIRED_KEYS = [
-    ("TG_TOKEN", TG_TOKEN, "텔레그램 봇"),
-    ("TG_CHAT", TG_CHAT, "텔레그램 챗"),
+    ("TG_TOKEN", TG_TOKEN, "Telegram bot"),
+    ("TG_CHAT", TG_CHAT, "Telegram "),
     ("GEMINI_KEY", GEMINI_KEY, "Gemini API (t9_auto, gm_batch)"),
     ("CANVAS_TOKEN", CANVAS_TOKEN, "Canvas LMS (sc41)"),
     ("GOOGLE_CLIENT_ID", GOOGLE_CLIENT_ID, "Google Calendar"),
@@ -38,7 +38,7 @@ REQUIRED_KEYS = [
 
 
 def check_files() -> list[dict]:
-    """파이프라인 파일 존재 확인."""
+    """pipeline file check."""
     results = []
     for p in PIPELINES:
         exists = p["path"].exists()
@@ -52,7 +52,7 @@ def check_files() -> list[dict]:
 
 
 def check_env() -> list[dict]:
-    """필수 환경변수/API 키 확인."""
+    """required env var/API key check."""
     results = []
     for name, value, desc in REQUIRED_KEYS:
         ok = bool(value and len(value) > 3)
@@ -65,7 +65,7 @@ def check_env() -> list[dict]:
 
 
 def check_processes() -> list[dict]:
-    """실행 중인 파이프라인 프로세스 확인 (중복 감지)."""
+    """execution pipeline process check (duplicate )."""
     results = []
     try:
         ps = subprocess.run(
@@ -73,26 +73,26 @@ def check_processes() -> list[dict]:
         )
         lines = ps.stdout.splitlines()
     except Exception:
-        return [{"name": "ps", "status": "ERROR", "detail": "ps 실행 실패"}]
+        return [{"name": "ps", "status": "ERROR", "detail": "ps execution failed"}]
 
     daemon_names = ["t9_bot.py", "deadline_notify", "calendar_sync"]
     for name in daemon_names:
         matches = [l for l in lines if name in l and "grep" not in l and "python" in l]
         if len(matches) == 0:
             if name == "t9_bot.py":
-                results.append({"name": name, "status": "DOWN", "pids": [], "detail": "프로세스 없음"})
+                results.append({"name": name, "status": "DOWN", "pids": [], "detail": "process not found"})
         elif len(matches) == 1:
             pid = matches[0].split()[1]
             results.append({"name": name, "status": "OK", "pids": [pid], "detail": ""})
         else:
             pids = [m.split()[1] for m in matches]
-            results.append({"name": name, "status": "DUPLICATE", "pids": pids, "detail": f"중복 {len(matches)}개"})
+            results.append({"name": name, "status": "DUPLICATE", "pids": pids, "detail": f"duplicate {len(matches)}"})
 
     return results
 
 
 def check_cron() -> list[dict]:
-    """crontab 등록 확인."""
+    """crontab register check."""
     results = []
     try:
         cron = subprocess.run(
@@ -100,7 +100,7 @@ def check_cron() -> list[dict]:
         )
         cron_content = cron.stdout
     except Exception:
-        return [{"name": "crontab", "status": "ERROR", "detail": "crontab 읽기 실패"}]
+        return [{"name": "crontab", "status": "ERROR", "detail": "crontab  failed"}]
 
     expected_cron = [
         ("deadline_notify", "deadline"),
@@ -121,7 +121,7 @@ def check_cron() -> list[dict]:
 
 
 def check_pipe_status() -> list[dict]:
-    """lib/logger의 파이프라인 실행 기록 확인."""
+    """lib/loggerpipeline execution record check."""
     status = get_all_status()
     results = []
     for name, info in status.items():
@@ -137,9 +137,9 @@ def check_pipe_status() -> list[dict]:
 
 
 def check_db() -> dict:
-    """SQLite DB 상태."""
+    """SQLite DB state."""
     if not DB_PATH.exists():
-        return {"status": "MISSING", "detail": ".t9.db 없음"}
+        return {"status": "MISSING", "detail": ".t9.db not found"}
     try:
         import sqlite3
         conn = sqlite3.connect(str(DB_PATH), timeout=5)
@@ -147,14 +147,14 @@ def check_db() -> dict:
         conn.close()
         return {"status": "OK", "entities": count}
     except Exception as e:
-        # 내부 경로/쿼리 노출 방지: 로컬 로그에만 상세, TG에는 일반 메시지
+        # path/query : logdetail, TGmessage
         import logging
         logging.getLogger("healthcheck").warning("DB check failed: %s", e)
-        return {"status": "ERROR", "detail": "DB 접근 실패 (로컬 로그 확인)"}
+        return {"status": "ERROR", "detail": "DB access failed ( log check)"}
 
 
 def run_all() -> dict:
-    """전체 헬스체크 실행."""
+    """total execution."""
     return {
         "timestamp": datetime.now().isoformat(),
         "files": check_files(),
@@ -167,65 +167,65 @@ def run_all() -> dict:
 
 
 def format_terminal(result: dict) -> str:
-    """터미널용 포맷."""
+    """."""
     lines = [f"\n  === T9 OS Health Check ({result['timestamp'][:19]}) ===\n"]
 
-    # 환경변수
+    # env var
     env_issues = [e for e in result["env"] if e["status"] != "OK"]
     if env_issues:
-        lines.append("  ❌ 환경변수 누락:")
+        lines.append("  ❌ env var missing:")
         for e in env_issues:
             lines.append(f"     {e['name']} — {e['desc']}")
     else:
-        lines.append(f"  ✅ 환경변수 {len(result['env'])}개 정상")
+        lines.append(f"  ✅ env var {len(result['env'])} normal")
 
-    # 파일
+    # file
     missing = [f for f in result["files"] if f["status"] != "OK"]
     if missing:
-        lines.append(f"  ❌ 파일 누락: {', '.join(f['name'] for f in missing)}")
+        lines.append(f"  ❌ file missing: {', '.join(f['name'] for f in missing)}")
     else:
-        lines.append(f"  ✅ 파이프라인 {len(result['files'])}개 파일 존재")
+        lines.append(f"  ✅ pipeline {len(result['files'])} file ")
 
-    # 프로세스
+    # process
     for p in result["processes"]:
         if p["status"] == "DUPLICATE":
-            lines.append(f"  ⚠️ {p['name']} 중복! PIDs={p['pids']}")
+            lines.append(f"  ⚠️ {p['name']} duplicate! PIDs={p['pids']}")
         elif p["status"] == "DOWN":
-            lines.append(f"  ❌ {p['name']} 프로세스 없음")
+            lines.append(f"  ❌ {p['name']} process not found")
         elif p["status"] == "OK":
             lines.append(f"  ✅ {p['name']} PID={p['pids'][0]}")
 
     # cron
     cron_issues = [c for c in result["cron"] if c["status"] != "OK"]
     if cron_issues:
-        lines.append(f"  ⚠️ cron 미등록: {', '.join(c['name'] for c in cron_issues)}")
+        lines.append(f"  ⚠️ cron register: {', '.join(c['name'] for c in cron_issues)}")
     else:
-        lines.append(f"  ✅ cron {len(result['cron'])}개 등록")
+        lines.append(f"  ✅ cron {len(result['cron'])} register")
 
-    # 최근 파이프라인 실행 상태
+    # pipeline execution state
     fails = [p for p in result["pipe_status"] if p["status"] == "FAIL"]
     if fails:
-        lines.append("  ❌ 최근 실패:")
+        lines.append("  ❌  failed:")
         for f in fails:
             lines.append(f"     {f['name']} ({f['time']}) — {f['detail'][:60]}")
 
     # DB
     db = result["db"]
     if db["status"] == "OK":
-        lines.append(f"  ✅ DB 정상 (엔티티 {db.get('entities', '?')}건)")
+        lines.append(f"  ✅ DB normal ( {db.get('entities', '?')}items)")
     else:
         lines.append(f"  ❌ DB {db['status']}: {db.get('detail', '')}")
 
-    # 종합
+    #
     total_issues = len(env_issues) + len(missing) + len(cron_issues) + len(fails)
     total_issues += sum(1 for p in result["processes"] if p["status"] in ("DUPLICATE", "DOWN"))
     if db["status"] != "OK":
         total_issues += 1
 
     if total_issues == 0:
-        lines.append("\n  🟢 전체 정상")
+        lines.append("\n  🟢 total normal")
     else:
-        lines.append(f"\n  🔴 문제 {total_issues}건 발견")
+        lines.append(f"\n  🔴  {total_issues}items found")
 
     return "\n".join(lines)
 
@@ -237,18 +237,18 @@ if __name__ == "__main__":
         print(json.dumps(result, ensure_ascii=False, indent=2))
     elif "--tg" in sys.argv:
         text = format_terminal(result)
-        # TG 전송 시 내부 경로/에러 상세 제거 — 상태만 전달
+        # TG path/detail remove — state
         issues = [l for l in text.split("\n") if "❌" in l or "⚠️" in l]
         if issues:
-            # detail 부분 마스킹: 괄호 안 내용 제거
+            # detail partial : content remove
             import re
             sanitized = [re.sub(r'\(.*?\)', '', l).strip() for l in issues]
             try:
                 _tg_send_raw("🔴 T9 Health Check\n\n" + "\n".join(sanitized))
             except Exception:
-                print("  [warn] TG 알림 전송 실패")
-            print(text)  # 로컬에는 전체 표시
+                print("  [warn] TG notification failed")
+            print(text)  # total
         else:
-            print("  🟢 전체 정상 — TG 알림 생략")
+            print("  🟢 total normal — TG notification skipped")
     else:
         print(format_terminal(result))

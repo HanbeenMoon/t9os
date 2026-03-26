@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""T9 CEO Brief — 의사결정 필요 사항만 텔레그램 보고.
-마감일 나열이 아니라, CEO가 행동해야 할 것만 보낸다.
-아무것도 없으면 보내지 않는다."""
+"""T9 CEO Brief — Telegram report.
+deadline , CEO.
+."""
 import sys, sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -23,7 +23,7 @@ def _get_db():
 
 
 def _get_deadlines():
-    """state.md와 seed daily에서 마감일 추출"""
+    """state.mdseed dailydeadline extract"""
     state_path = HANBEEN / ".claude" / "state.md"
     if not state_path.exists():
         return []
@@ -31,9 +31,9 @@ def _get_deadlines():
     content = state_path.read_text(encoding="utf-8", errors="replace")
     results = []
     today = datetime.now().date()
-    # D-N 패턴 또는 날짜 패턴 매칭
+    # D-N pattern date pattern
     for line in content.split("\n"):
-        # "- D-7 2026-03-24 예창패 마감" 패턴
+        # "- D-7 2026-03-24 deadline" pattern
         m = re.search(r'(\d{4}-\d{2}-\d{2})\s+(.+?)(?:\s$)', line)
         if m:
             try:
@@ -43,14 +43,14 @@ def _get_deadlines():
                     results.append((delta, m.group(1), m.group(2).strip()))
             except ValueError:
                 pass
-    # seed DB의 urgency=high 엔티티에서 마감 추출
+    # seed DBurgency=high deadline extract
     conn = _get_db()
     if conn:
         try:
             rows = conn.execute(
                 "SELECT filename, metadata FROM entities "
                 "WHERE phase NOT IN ('archived','dissolved','stabilized','sediment') "
-                "AND metadata LIKE '%마감%'"
+                "AND metadata LIKE '%deadline%'"
             ).fetchall()
             for r in rows:
                 meta = r["metadata"] or ""
@@ -75,18 +75,18 @@ def build_brief():
     now = datetime.now()
     sections = []
 
-    # === 1. 마감 임박 (D-3 이하) — 구체적 행동 포함 ===
+    # === 1. deadline (D-3 ) — ===
     deadlines = _get_deadlines()
     urgent_dl = [d for d in deadlines if d[0] <= 3]
     if urgent_dl:
-        lines = ["📅 마감 임박 — 행동 필요"]
+        lines = ["📅 deadline  —  "]
         for delta, date, title in urgent_dl:
             if delta < 0:
-                label = "⚠️ 지남!"
+                label = "⚠️ !"
             elif delta == 0:
-                label = "🔴 오늘"
+                label = "🔴 "
             elif delta == 1:
-                label = "🟡 내일"
+                label = "🟡 Tomorrow"
             else:
                 label = f"D-{delta}"
             lines.append(f"  {label} {title}")
@@ -98,7 +98,7 @@ def build_brief():
             return f"T9 Brief — {now:%m/%d %H:%M}\n\n" + "\n\n".join(sections)
         return None
 
-    # === 2. 블로커 — 7일+ 정체, 결정 필요 ===
+    # === 2. — 7+ , ===
     week_ago = (now - timedelta(days=7)).isoformat()
     try:
         stale = conn.execute(
@@ -107,16 +107,16 @@ def build_brief():
             "ORDER BY updated_at LIMIT 5", (week_ago,)
         ).fetchall()
         if stale:
-            lines = ["🚧 블로커 — 계속/중단/폐기 결정"]
+            lines = ["🚧  — /suspended/ "]
             for r in stale:
                 days = (now - datetime.fromisoformat(r["updated_at"])).days
                 name = r["filename"].replace(".md", "")[:40]
-                lines.append(f"  {name} ({days}일 정체)")
+                lines.append(f"  {name} ({days} )")
             sections.append("\n".join(lines))
     except Exception:
         pass
 
-    # === 3. 24h 내 상태 변동 요약 ===
+    # === 3. 24h state summary ===
     yesterday = (now - timedelta(hours=24)).isoformat()
     try:
         transitions = conn.execute(
@@ -126,7 +126,7 @@ def build_brief():
             (yesterday,)
         ).fetchall()
         if transitions:
-            lines = ["🔄 24h 변동"]
+            lines = ["🔄 24h "]
             for t in transitions:
                 name = t["filename"].replace(".md", "")[:35]
                 lines.append(f"  {name}: {t['from_phase']}→{t['to_phase']}")
@@ -134,7 +134,7 @@ def build_brief():
     except Exception:
         pass
 
-    # === 4. 인박스 과부하 ===
+    # === 4. ===
     try:
         counts = {}
         for phase in ["preindividual", "tension_detected", "individuating", "stabilized"]:
@@ -145,20 +145,20 @@ def build_brief():
 
         if counts["preindividual"] > 20:
             sections.append(
-                f"📥 인박스 과부하\n  전개체 {counts['preindividual']}건 — "
-                f"정리/tidy 필요\n  (다음 tidy: 일/수 10:00)"
+                f"📥  \n  Preindividual {counts['preindividual']}items — "
+                f"clean up/tidy \n  (next tidy: / 10:00)"
             )
     except Exception:
         counts = {"preindividual": 0, "individuating": 0, "stabilized": 0}
 
-    # === 5. 긴급 미해결 (tension_detected) ===
+    # === 5. urgent (tension_detected) ===
     try:
         tension = conn.execute(
             "SELECT id, filename FROM entities "
             "WHERE phase='tension_detected' LIMIT 5"
         ).fetchall()
         if tension:
-            lines = ["🔥 긴장 감지 — 확인 필요"]
+            lines = ["🔥 Tension  — check "]
             for r in tension:
                 name = r["filename"].replace(".md", "")[:40]
                 lines.append(f"  [{r['id']}] {name}")
@@ -168,9 +168,9 @@ def build_brief():
 
     conn.close()
 
-    # === 조립 ===
+    # === ===
     if not sections:
-        return None  # 보고할 것 없음 = CEO 방해 안 함
+        return None  # reportnot found = CEO
 
     header = f"T9 CEO Brief — {now:%m/%d %H:%M}\n"
     ind = counts.get("individuating", 0)
@@ -189,7 +189,7 @@ def main():
             tg_send(brief)
             print(f"[{datetime.now():%H:%M:%S}] CEO brief sent")
     else:
-        print(f"[{datetime.now():%H:%M:%S}] Nothing to report — CEO 방해 안 함")
+        print(f"[{datetime.now():%H:%M:%S}] Nothing to report — CEO ")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
-"""Google Drive 파일 업로드 파이프라인.
+"""Google Drive file pipeline.
 
 Usage:
-    python3 T9OS/pipes/gdrive_upload.py "파일1" "파일2" --folder "2026"
+    python3 T9OS/pipes/gdrive_upload.py "file1" "file2" --folder "2026"
     python3 T9OS/pipes/gdrive_upload.py report.pdf
 """
 
@@ -47,7 +47,7 @@ def _refresh_access_token() -> str:
 
 
 def _find_folder(token: str, name: str) -> str | None:
-    """이름으로 Drive 폴더 검색. 있으면 ID 반환."""
+    """nameDrive folder search. ID return."""
     q = f"name='{name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
     params = urllib.parse.urlencode({"q": q, "fields": "files(id,name)", "pageSize": "1"})
     url = f"{DRIVE_FILES_URL}?{params}"
@@ -63,7 +63,7 @@ def _find_folder(token: str, name: str) -> str | None:
 
 
 def _create_folder(token: str, name: str) -> str:
-    """Drive 폴더 생성, ID 반환."""
+    """Drive folder create, ID return."""
     metadata = json.dumps({
         "name": name,
         "mimeType": "application/vnd.google-apps.folder",
@@ -113,44 +113,44 @@ def _upload_file(token: str, filepath: Path, folder_id: str | None = None) -> di
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Google Drive 파일 업로드")
-    parser.add_argument("files", nargs="+", help="업로드할 파일 경로")
-    parser.add_argument("--folder", help="업로드 대상 폴더 이름 (없으면 생성)")
+    parser = argparse.ArgumentParser(description="Google Drive file ")
+    parser.add_argument("files", nargs="+", help=" file path")
+    parser.add_argument("--folder", help=" target folder name ( create)")
     args = parser.parse_args()
 
     if not all([GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN]):
-        print("ERROR: Google 인증 정보 미설정. config.py 확인 필요.")
+        print("ERROR: Google auth config. config.py check .")
         return 1
 
-    # 파일 존재 확인
+    # file check
     paths: list[Path] = []
     for f in args.files:
         p = Path(f).resolve()
         if not p.is_file():
-            print(f"ERROR: 파일 없음 — {p}")
+            print(f"ERROR: file not found — {p}")
             return 1
         paths.append(p)
 
     try:
-        print("Access token 발급 중...")
+        print("Access token ...")
         token = _refresh_access_token()
 
-        # 폴더 처리
+        # folder process
         folder_id = None
         if args.folder:
             folder_id = _find_folder(token, args.folder)
             if folder_id:
-                print(f"폴더 발견: {args.folder} ({folder_id})")
+                print(f"folder found: {args.folder} ({folder_id})")
             else:
                 folder_id = _create_folder(token, args.folder)
-                print(f"폴더 생성: {args.folder} ({folder_id})")
+                print(f"folder Created: {args.folder} ({folder_id})")
 
-        # 업로드
+        #
         for p in paths:
-            print(f"업로드 중: {p.name} ({p.stat().st_size:,} bytes)...")
+            print(f": {p.name} ({p.stat().st_size:,} bytes)...")
             result = _upload_file(token, p, folder_id)
             link = result.get("webViewLink", f"https://drive.google.com/file/d/{result['id']}")
-            print(f"  완료: {link}")
+            print(f"  completed: {link}")
 
     except urllib.error.HTTPError as e:
         err_body = e.read().decode() if e.fp else ""
@@ -160,7 +160,7 @@ def main() -> int:
         print(f"ERROR: {e}")
         return 1
 
-    print(f"\n총 {len(paths)}개 파일 업로드 완료.")
+    print(f"\n{len(paths)}file completed.")
     return 0
 
 

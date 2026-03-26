@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-T9 OS 재현성 체크 스크립트
-CLAUDE.md 파이프라인 레지스트리 vs 실제 T9OS/pipes/ 디렉토리 비교
+T9 OS script
+CLAUDE.md pipeline vs T9OS/pipes/ compare
 """
 import os
 import re
@@ -15,13 +15,13 @@ LIB_DIR = os.path.join(BASE, "lib")
 
 
 def get_registered_files():
-    """CLAUDE.md 파이프라인 레지스트리 테이블에서 등록된 파일 추출"""
+    """CLAUDE.md pipeline tableregisterfile extract"""
     registered = {}
     with open(CLAUDE_MD, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # 파이프라인 레지스트리 테이블에서 파일명 추출
-    # 패턴: `T9OS/pipes/xxx.py` 또는 `T9OS/lib/xxx.py` 또는 `T9OS/t9_seed.py`
+    # pipeline tablefileextract
+    # pattern: `T9OS/pipes/xxx.py` `T9OS/lib/xxx.py` `T9OS/t9_seed.py`
     pattern = r"`T9OS/((?:pipes|lib)/[\w.]+|t9_seed\.py)`"
     for m in re.finditer(pattern, content):
         path = m.group(1)
@@ -31,7 +31,7 @@ def get_registered_files():
 
 
 def get_actual_files():
-    """T9OS/pipes/ 와 T9OS/lib/ 에서 실제 .py 파일 목록"""
+    """T9OS/pipes/ T9OS/lib/ .py file list"""
     actual = {}
 
     for dirname, prefix in [(PIPES_DIR, "pipes"), (LIB_DIR, "lib")]:
@@ -73,37 +73,37 @@ def main():
         elif not in_reg and in_actual:
             warnings.append(key)
 
-    # 출력
+    # output
     print("=" * 60)
-    print("T9 OS 재현성 체크 결과")
+    print("T9 OS result")
     print("=" * 60)
 
     total = len(all_keys)
     matched = len(ok)
     score = int(matched / total * 100) if total > 0 else 0
 
-    print(f"\n재현성 점수: {score}% ({matched}/{total})")
+    print(f"\nscore: {score}% ({matched}/{total})")
     print()
 
     if ok:
-        print(f"OK ({len(ok)}건) — CLAUDE.md 등록 + 파일 존재:")
+        print(f"OK ({len(ok)}items) — CLAUDE.md register + file :")
         for f in ok:
             print(f"  [OK] {f}")
 
     if errors:
-        print(f"\nERROR ({len(errors)}건) — CLAUDE.md에 등록됐으나 파일 없음:")
+        print(f"\nERROR ({len(errors)}items) — CLAUDE.mdregisterfile not found:")
         for f in errors:
             print(f"  [ERROR] {f}")
 
     if warnings:
-        print(f"\nWARNING ({len(warnings)}건) — 파일 있으나 CLAUDE.md 미등록:")
+        print(f"\nWARNING ({len(warnings)}items) — file CLAUDE.md register:")
         for f in warnings:
             print(f"  [WARNING] {f}")
 
     print()
     print("=" * 60)
 
-    # 에러가 있으면 exit 1
+    # exit 1
     if errors:
         sys.exit(1)
     sys.exit(0)

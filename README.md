@@ -4,12 +4,18 @@
 [![SQLite](https://img.shields.io/badge/SQLite-FTS5-003B57?logo=sqlite&logoColor=white)]()
 [![Claude Code](https://img.shields.io/badge/Claude_Code-Anthropic-8A2BE2)]()
 [![License](https://img.shields.io/github/license/HanbeenMoon/t9os)](LICENSE)
-[![ADRs](https://img.shields.io/badge/ADRs-68_decisions-orange)]()
+[![ADRs](https://img.shields.io/badge/ADRs-47_decisions-orange)]()
 [![Status](https://img.shields.io/badge/status-production-brightgreen)]()
 
 **One person. 18 production pipelines. A complete AI orchestration layer — built solo over three months using Claude Code and philosophical intuition.**
 
 Not theoretical. Production-grade.
+
+<p align="center">
+  <img src="docs/images/t9viz-overview.png" alt="T9 OS 3D Visualization — entity graph with urgency clustering" width="800">
+  <br>
+  <em>3D entity visualization — 1,500+ entities rendered as force-directed graph with urgency clustering</em>
+</p>
 
 ---
 
@@ -19,7 +25,60 @@ T9 OS is a personal operating system layered on top of Claude Code. It replaces 
 
 Everything passes through a 12-state lifecycle engine modeled on Gilbert Simondon's theory of individuation. A raw idea enters as `preindividual`. It becomes `tension_detected` when it conflicts with something else. It moves through `candidate_generated → individuating → stabilized`. Nothing is ever deleted — dissolved entities sink into sediment and remain searchable.
 
-The result: **1,104 entities tracked**, **68 architectural decisions logged**, **18 pipelines running in production**, **8 scheduled cron jobs** — all operated by a single human who sets direction while the system handles execution, judgment, and verification autonomously.
+The result: **1,100+ entities tracked**, **47 architectural decisions logged**, **18 pipelines running in production**, **8 scheduled cron jobs** — all operated by a single human who sets direction while the system handles execution, judgment, and verification autonomously.
+
+### What it looks like in practice
+
+```
+$ t9 daily
+
+  === T9 OS Seed v0.2 — 2026-03-26 Thursday ===
+
+  [!] Deadlines:
+    D-1    2026-03-27  Monitoring application deadline
+    D-5    2026-03-31  Monthly work report
+    D-9    2026-04-04  AT1 Finals (Kakao AI Campus)
+
+  Active: 262 entities
+  Preindividual: 405 | Tension: 167 | Candidate: 18
+  Sediment: 61 — dormant entities, searchable via `t9 search`
+
+  [Transduction] Patterns extracted from recent archives:
+    [120] SSK research → transferable to [136] ODNAR landing page
+    [165] Paper v9 → transferable to [807] PM3 quickstart
+```
+
+<details>
+<summary><strong>More screenshots</strong></summary>
+<br>
+<p align="center">
+  <img src="docs/images/t9viz-info-panel.png" alt="Entity info panel" width="400">
+  <img src="docs/images/t9viz-urgent-panel.png" alt="Urgency panel" width="400">
+</p>
+</details>
+
+---
+
+## Quick Start
+
+```bash
+# Clone
+git clone https://github.com/HanbeenMoon/t9os.git
+cd t9os
+
+# Set up alias (one line, one time)
+echo 'alias t9="python3 $(pwd)/t9_seed.py"' >> ~/.bashrc && source ~/.bashrc
+
+# Three commands you need
+t9 daily        # What's happening today
+t9 capture "thought or idea"   # Save a preindividual
+t9 status       # Full system overview
+
+# Everything else
+t9 search "query"     # Full-text search across all entities
+t9 transition <id> stabilized "reason"   # Move entity state
+t9 reindex            # Rebuild entity index from filesystem
+```
 
 ---
 
@@ -31,9 +90,9 @@ The result: **1,104 entities tracked**, **68 architectural decisions logged**, *
 │                                                          │
 │  ┌─────────────────┐   ┌──────────────┐  ┌───────────┐ │
 │  │ constitution/   │   │ telos/       │  │decisions/ │ │
-│  │ L1 hard rules   │   │ MISSION      │  │ 68 ADRs   │ │
-│  │ L2 transitions  │   │ GOALS        │  │           │ │
-│  │ L3 self-amend   │   │ SIMONDON     │  └───────────┘ │
+│  │ L1 hard rules   │   │ MISSION      │  │ 47 ADRs   │ │
+│  │ L2 transitions  │   │ SIMONDON     │  │           │ │
+│  │ L3 self-amend   │   │ UX_PRINCIPLES│  └───────────┘ │
 │  │ 7 Guardians     │   └──────────────┘                │
 │  └────────┬────────┘                                    │
 │           │                                             │
@@ -84,7 +143,7 @@ Entity state machine:
 | `session_live_read.py` | Reads Claude Code JSONL sessions in real time — no waiting for session end |
 | `healthcheck.py` | Full system health check — reports to Telegram if anything breaks |
 | `whisper_pipeline.py` | Voice memo → transcription → entity capture |
-| `hwp_convert.py` | Korean HWP document → DOCX conversion with original protection |
+| `hwp_convert.py` | HWP document → DOCX conversion with original protection |
 | `t9_auto.py` | Gemini-powered concept extraction from entities |
 | `integrity_check.py` | Cross-checks data consistency across the entity store |
 | `adr_auto.py` | Detects significant commits and auto-generates Architecture Decision Records |
@@ -112,52 +171,13 @@ Entity state machine:
 
 ---
 
-## Live Stats
-
-| Metric | Count |
-|---|---|
-| Total entities tracked | 1,104 |
-| Production pipelines | 18 |
-| Scheduled cron jobs | 8 |
-| Architecture Decision Records | 68 |
-| Entity states | 12 |
-| Active transduction relations | 12 |
-
----
-
-## Demo
-
-> Screenshots coming. The system runs headless — primary interface is Telegram and Claude Code CLI.
-
-**CLI status:**
-```
-$ python3 t9_seed.py status
-
-=== T9 OS Seed v0.2 (total 1104) ===
-
-  archived              514  ##############################
-  stabilized            252  ##############################
-  tension_detected      167  ##############################
-  preindividual          84  ##############################
-  sediment               61  ##############################
-  candidate_generated    18  ##################
-  suspended               3
-  dissolved               3
-  individuating           1
-  impulse                 1
-
-  transduction relations: 12
-```
-
----
-
 ## What Makes This Different
 
-**Policy hooks as governance.** `pre-tool-hard-gate.sh` intercepts every tool call and blocks dangerous operations — force push, `rm -rf`, credential access, HWP originals — before they execute. Hard rules enforced in Bash; soft rules (build-vs-buy, philosophical alignment) enforced by an LLM running inline.
+**Policy hooks as governance.** `pre-tool-hard-gate.sh` intercepts every tool call and blocks dangerous operations — force push, `rm -rf`, credential access — before they execute. Hard rules enforced in Bash; soft rules (build-vs-buy, philosophical alignment) enforced by an LLM running inline.
 
 **Constitution as code.** Three tiers: L1 defines immutable execution rules. L2 defines transition logic and interpretation. L3 defines how L1 and L2 can be amended. The system can rewrite its own rules through a governed process. All changes leave ADR traces.
 
-**MCP before MCP was standard.** `mcp/t9_seed_server.py` wraps the seed engine as a Model Context Protocol server — Claude Code calls `t9_capture`, `t9_search`, `t9_status` as native tools. Implemented independently before Anthropic shipped official MCP integration.
+**MCP integration.** `mcp/t9_seed_server.py` wraps the seed engine as a Model Context Protocol server — Claude Code calls `t9_capture`, `t9_search`, `t9_status` as native tools.
 
 **Philosophy as constraint.** Two of the seven Guardians check Simondonian alignment. Code that simplifies ideas into conventional patterns gets flagged the same way security vulnerabilities do. Without this, AI assistants quietly flatten your thinking.
 
@@ -169,13 +189,15 @@ $ python3 t9_seed.py status
 t9os/
 ├── t9_seed.py           # seed engine — entity management, search, lifecycle
 ├── constitution/        # L1 / L2 / L3 rules + 7 Guardian definitions
-├── telos/               # mission, goals, Simondon mapping
-├── decisions/           # 68 Architecture Decision Records
+├── telos/               # mission, Simondon mapping, UX principles, learnings
+├── decisions/           # 47 Architecture Decision Records
 ├── lib/                 # config, logger, parsers, transduction, IPC
 ├── pipes/               # 18 production pipelines
 ├── mcp/                 # MCP server wrapping t9_seed.py
+├── skills/              # Claude Code skill plugins
+├── demos/               # Standalone demo projects
 ├── tests/               # smoke tests (37 checks)
-└── artifacts/           # generated documents, whitepapers
+└── docs/                # hooks examples and guides
 ```
 
 ---

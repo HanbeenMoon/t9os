@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""T9 텔레그램 공통 모듈 — config.py에서 설정 로드."""
+"""T9 Telegram common module — config.pyconfig ."""
 import json, urllib.request, urllib.parse, sys
 from pathlib import Path
 
@@ -12,10 +12,10 @@ API = f"https://api.telegram.org/bot{TOKEN}"
 
 
 def tg_send(text, chat_id=None, parse_mode=None):
-    """텔레그램 메시지 전송 (4096자 자동 분할)"""
+    """Telegram message (4096auto )"""
     chat_id = chat_id or CHAT_ID
     if not TOKEN or not chat_id:
-        print("[tg_send 실패] T9_TG_TOKEN 또는 T9_TG_CHAT 환경변수 없음")
+        print("[tg_send failed] T9_TG_TOKEN T9_TG_CHAT env var not found")
         return
     for i in range(0, max(len(text), 1), 4000):
         chunk = text[i:i + 4000]
@@ -26,11 +26,11 @@ def tg_send(text, chat_id=None, parse_mode=None):
         try:
             urllib.request.urlopen(f"{API}/sendMessage", data, timeout=10)
         except Exception as e:
-            print(f"[tg_send 실패] {e}")
+            print(f"[tg_send failed] {e}")
 
 
 def tg_updates(offset=0):
-    """텔레그램 업데이트 (long polling)"""
+    """Telegram (long polling)"""
     try:
         resp = urllib.request.urlopen(f"{API}/getUpdates?timeout=30&offset={offset}", timeout=35)
         return json.loads(resp.read())
@@ -39,7 +39,7 @@ def tg_updates(offset=0):
 
 
 def tg_download_file(file_id):
-    """텔레그램 파일 다운로드 → 로컬 경로 반환"""
+    """Telegram file → path return"""
     from datetime import datetime
     try:
         resp = urllib.request.urlopen(f"{API}/getFile?file_id={file_id}", timeout=10)
@@ -56,5 +56,5 @@ def tg_download_file(file_id):
         urllib.request.urlretrieve(url, str(local_path))
         return local_path
     except Exception as e:
-        print(f"[다운로드실패] {e}")
+        print(f"[failed] {e}")
         return None

@@ -1,17 +1,16 @@
 # AI Task Bot
 
-A Telegram bot that manages tasks through natural language — in Korean and English.
+A Telegram bot that manages tasks through natural language.
 
 > Built with patterns from **T9OS** — a personal AI operating system managing 18 production pipelines.
 
 ## Features
 
-- **Natural language input** — "내일까지 보고서 제출" or "add report by Friday"
+- **Natural language input** — "add report by Friday" or "urgent server check tomorrow"
 - **Auto-parsing** — extracts title, due date, and priority from free text
 - **SQLite storage** — lightweight, zero-config persistence
 - **Deadline alerts** — periodic checks with Telegram notifications
 - **Daily digest** — automated summary of open tasks and upcoming deadlines
-- **Bilingual** — Korean and English supported out of the box
 - **AI upgrade path** — swap regex parser for Claude API with one env variable
 
 ## Architecture
@@ -59,12 +58,11 @@ python bot.py
 
 | You type | Bot understands |
 |----------|----------------|
-| `내일까지 보고서 제출` | Add task "보고서 제출", due tomorrow |
 | `add report by Friday` | Add task "report", due Friday |
-| `긴급 서버 점검` | Add task "서버 점검", priority urgent |
-| `완료 #3` | Mark task #3 as done |
-| `목록` | Show all open tasks |
-| `요약` | Daily summary |
+| `urgent server check tomorrow` | Add task "server check", priority urgent, due tomorrow |
+| `done #3` | Mark task #3 as done |
+| `list` | Show all open tasks |
+| `summary` | Daily summary |
 
 ## Cron Integration
 

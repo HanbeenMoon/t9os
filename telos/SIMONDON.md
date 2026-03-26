@@ -1,67 +1,64 @@
----
-phase: stabilized
-transitioned_at: 2026-03-16 04:59
----
+# Simondon's Individuation Theory — Philosophical Foundation
 
-# 시몽동 개체화 이론 — T9 OS 철학적 기반
-# v1.0 — 2026-03-16 리서치 기반
+> v1.0 — Research-based (2026-03-16)
 
-## 핵심 개념 → T9 OS 매핑
+## Core Concepts → T9 OS Mapping
 
-| 시몽동 | 정의 | T9 OS 대응 |
-|--------|------|-----------|
-| **Preindividual** | 개체화 이전의 과포화된 잠재성 | Layer A: field/inbox, impulses |
-| **Metastability** | 퍼텐셜 축적된 불완전 평형 | tension_detected 상태 |
-| **Disparation** | 양립 불가능한 차원 간 긴장 | "SSK 마감 vs ODNAR 충동" |
-| **Transduction** | 한 영역의 구조가 인접 영역으로 전파 | 프로젝트 간 패턴 전파 |
-| **Concretization** | 추상→구체 진화 (다기능적 통합) | 도구 간 통합 성숙도 |
-| **Associated Milieu** | 기술적 개체와 환경의 되먹임 | 파일시스템+Notion+GitHub+한빈 |
-| **Modulation** | 연속적이고 영구히 가변적인 형성 | L3 자기개정, 세션 개체화 |
+| Simondon | Definition | T9 OS Correspondence |
+|----------|------------|---------------------|
+| **Preindividual** | Supersaturated potential before individuation | Layer A: field/inbox, impulses |
+| **Metastability** | Incomplete equilibrium with accumulated potential | `tension_detected` state |
+| **Disparation** | Tension between incompatible dimensions | e.g., "deadline pressure vs creative impulse" |
+| **Transduction** | Structural propagation from one domain to an adjacent one | Cross-project pattern transfer |
+| **Concretization** | Abstract → concrete evolution (multi-functional integration) | Tool integration maturity |
+| **Associated Milieu** | Feedback loop between technical individual and environment | Filesystem + APIs + user context |
+| **Modulation** | Continuous, perpetually variable formation | L3 self-amendment, session individuation |
 
-## 개체화 과정 메커니즘
+## Individuation Process Mechanism
 
 ```
-과포화 용액 (전개체적 장)
-  → 씨앗 결정 (특이점/교란)
-  → 형태의 전도적 전파
-  → 결정(개체) + 남은 용액(환경) 동시 출현
-  → 잔여 전개체성 (다음 개체화의 자원)
+Supersaturated solution (preindividual field)
+  → Seed crystal (singularity / perturbation)
+  → Transductive propagation of form
+  → Crystal (individual) + remaining solution (milieu) emerge simultaneously
+  → Residual preindividuality (resource for next individuation)
 ```
 
-### 5가지 핵심 원리
-1. **개체가 출발점이 아니다** — 과정이 원본, 개체는 부분적 결과물
-2. **개체와 환경은 동시 출현** — 개체가 먼저 있고 환경에 놓이는 것이 아님
-3. **개체화는 항상 불완전** — 잔여 전개체성이 남아 다음 개체화를 가능하게 함
-4. **이접의 해소** — 양립 불가능한 차원의 긴장이 새 차원에서 해소
-5. **해소는 소멸이 아닌 구조적 보존** — 긴장이 결과 구조 안에 보존
+### Five Core Principles
 
-## 형상질료론 비판 → T9 OS 설계 근거
+1. **The individual is not the starting point** — the process is primary, the individual is a partial result
+2. **Individual and milieu co-emerge** — the individual does not pre-exist and then get placed in an environment
+3. **Individuation is always incomplete** — residual preindividuality enables the next individuation
+4. **Resolution of disparation** — tension between incompatible dimensions resolves in a new dimension
+5. **Resolution is structural preservation, not elimination** — tension is preserved within the resulting structure
 
-시몽동은 아리스토텔레스의 "형태가 질료에 부과되어 개체 생성" 모델을 거부.
-- **형태(form) → 정보(information)로 대체**
-- 정보는 외부 부과가 아니라 시스템 내 이접에서 발생
-- **T9 OS**: 하드코딩된 카테고리(form) 부과 대신, 긴장(disparation)에서 구조 발생
+## Critique of Hylomorphism → T9 OS Design Rationale
 
-## 기술적 개체의 구체화
+Simondon rejects Aristotle's "form imposed on matter produces individual" model.
+- **Form → Information**: Information is not externally imposed but arises from intra-system disparation
+- **T9 OS**: Instead of imposing hardcoded categories (form), structure emerges from tension (disparation)
+
+## Concretization of Technical Objects
 
 ```
-추상적 단계: 각 도구(cc/cx/gm) 독립, 단일 기능
-  ↓ (구체화: 기능의 수렴, 내적 공명 증가)
-구체적 단계: 도구 간 다기능적 통합, 상호 의존
-  ↓ (associated milieu 출현)
-기술적 개체: T9 OS가 자기 환경을 창출하고 그에 의해 조건화
+Abstract stage: each tool (cc/cx/gm) independent, single-function
+  ↓ (concretization: functional convergence, increased internal resonance)
+Concrete stage: multi-functional integration between tools, mutual dependency
+  ↓ (associated milieu emerges)
+Technical individual: T9 OS creates its own milieu and is conditioned by it
 ```
 
-## T9 OS에서 아직 구현 안 된 시몽동 개념
+## Simondonian Concepts Not Yet Fully Implemented
 
-1. **Disparation 명시적 모델링**: 어떤 차원 간 긴장인지 기록
-2. **Transduction 경로 추적**: "A의 패턴이 B의 원리가 됨" 방향성
-3. **Associated Milieu 되먹임 로깅**: 환경 변화 → T9 조건화 순환 기록
-4. **Concretization 수준 측정**: 도구 통합 성숙도 정량화
+1. **Explicit disparation modeling**: recording which dimensions are in tension
+2. **Transduction path tracking**: "A's pattern became B's principle" with directionality
+3. **Associated milieu feedback logging**: environment change → T9 conditioning loop
+4. **Concretization level measurement**: quantifying tool integration maturity
 
-## 참고 저작
-- *L'individuation à la lumière des notions de forme et d'information* (1958/2005)
+## References
+
+- *L'individuation a la lumiere des notions de forme et d'information* (1958/2005)
 - *Du mode d'existence des objets techniques* (1958)
 - Aires (2024) "On the individuation of complex computational models" AI & Society
 
-*이 문서는 T9 OS의 철학적 기반이며 L3에 의해 개정 가능*
+*This document is the philosophical foundation of T9 OS and is subject to amendment under L3.*

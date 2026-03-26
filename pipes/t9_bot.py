@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""t9tb — T9 Telegram Bot. WSL에서 polling 방식으로 실행.
-모바일에서 T9 OS를 제어하는 유일한 인터페이스."""
+"""t9tb — T9 Telegram Bot. WSLpolling execution.
+T9 OSinterface."""
 import subprocess, time, sys, os, signal, shlex
 from pathlib import Path
 from datetime import datetime
 
-# 공통 모듈에서 텔레그램 함수 임포트
+# common moduleTelegram function
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from tg_common import tg_send, tg_updates, tg_download_file, CHAT_ID, T9, HANBEEN
 
@@ -14,81 +14,81 @@ LOCKFILE = T9 / ".t9bot.lock"
 
 
 def acquire_lock():
-    """단일 인스턴스 보장. PID 파일 기반 (NTFS에서 fcntl 불가)."""
+    """instance . PID file (NTFSfcntl )."""
     if PIDFILE.exists():
         old_pid = PIDFILE.read_text().strip()
         try:
-            os.kill(int(old_pid), 0)  # 프로세스 존재 확인
-            print(f"[t9tb] 이미 실행 중 (PID {old_pid}). 종료.")
+            os.kill(int(old_pid), 0)  # process check
+            print(f"[t9tb] execution (PID {old_pid}). end.")
             sys.exit(0)
         except (ProcessLookupError, ValueError):
-            pass  # 죽은 PID — 계속 진행
+            pass  # PID —
     PIDFILE.write_text(str(os.getpid()))
     return None
 
 
 def run_t9(cmd):
-    """T9 Seed 명령 실행"""
+    """T9 Seed command execution"""
     try:
         r = subprocess.run(
             ["python3", str(T9 / "t9_seed.py")] + shlex.split(cmd),
             capture_output=True, text=True, timeout=30, cwd=str(HANBEEN)
         )
-        return (r.stdout + r.stderr).strip() or "(출력 없음)"
+        return (r.stdout + r.stderr).strip() or "(output not found)"
     except subprocess.TimeoutExpired:
-        return "[타임아웃] 30초 초과"
+        return "[timeout] 30 "
     except Exception as e:
-        return f"[에러] {e}"
+        return f"[] {e}"
 
 
 def run_cc(question):
-    """Claude Code에게 질문 (non-interactive)"""
+    """Claude Code(non-interactive)"""
     try:
         r = subprocess.run(
             ["claude", "-p", question],
             capture_output=True, text=True, timeout=300, cwd=str(HANBEEN)
         )
-        return (r.stdout + r.stderr).strip()[:3500] or "(응답 없음)"
+        return (r.stdout + r.stderr).strip()[:3500] or "(response not found)"
     except subprocess.TimeoutExpired:
-        return "[타임아웃] 5분 초과"
+        return "[timeout] 5 "
     except FileNotFoundError:
-        return "[에러] claude CLI 미설치"
+        return "[] claude CLI "
     except Exception as e:
-        return f"[에러] {e}"
+        return f"[] {e}"
 
 
 def run_brief():
-    """CEO brief 인라인 실행"""
+    """CEO brief execution"""
     try:
         from t9_ceo_brief import build_brief
         brief = build_brief()
-        return brief or "보고할 것 없음 — 평온"
+        return brief or "report  not found — "
     except Exception as e:
-        return f"[에러] brief 생성 실패: {e}"
+        return f"[] brief create failed: {e}"
 
 
 def run_auto():
-    """자동 개체화 엔진 실행"""
+    """auto Individuating engine execution"""
     try:
         from t9_auto import run_auto as _run_auto
         report = _run_auto(dry_run=False)
         return (
-            f"t9_auto 완료\n"
+            f"t9_auto completed\n"
             f"concepts: +{report['concepts_added']}\n"
             f"urgency: +{report['urgency_set']}\n"
             f"project: +{report['projects_set']}\n"
             f"transition: +{report['transitioned']}"
         )
     except Exception as e:
-        return f"[에러] auto 실패: {e}"
+        return f"[] auto failed: {e}"
 
 
 def handle_voice(file_id, chat_id):
-    """음성/오디오 → 다운로드 → Whisper 전사"""
-    tg_send("녹음 다운로드 + 전사 중...", chat_id)
+    """voice/→ → Whisper transcription"""
+    tg_send("  + transcription ...", chat_id)
     local_path = tg_download_file(file_id)
     if not local_path:
-        return "다운로드 실패"
+        return " failed"
     try:
         r = subprocess.run(
             ["python3", str(T9 / "pipes" / "whisper_pipeline.py"), "transcribe", str(local_path)],
@@ -104,30 +104,28 @@ def handle_voice(file_id, chat_id):
                 body = parts[2].strip() if len(parts) > 2 else content
             else:
                 body = content
-            return f"전사 완료 ({latest[-1].name})\n\n{body[:3000]}"
-        return output[:3500] or "전사 완료 (결과 파일 확인)"
+            return f"transcription completed ({latest[-1].name})\n\n{body[:3000]}"
+        return output[:3500] or "transcription completed (result file check)"
     except subprocess.TimeoutExpired:
-        return "[타임아웃] 10분 초과"
+        return "[timeout] 10 "
     except Exception as e:
-        return f"[에러] {e}"
+        return f"[] {e}"
 
 
-HELP_TEXT = """t9tb 명령어:
-/status — T9 OS 현황
-/daily — 오늘 브리프
-/brief — CEO 브리프 (행동 필요 사항만)
-/deadline — 마감일 목록
-/auto — 자동 개체화 (Gemini로 분류/태깅)
-/search <키워드> — 엔티티 검색
-/capture <내용> — 전개체 저장
-/compose <내용> — 플랜 생성
-/tidy — 정리 실행
-/ask <질문> — CC에게 질문
-그냥 메시지 → 무응답 inbox 저장 (토큰 0)"""
+HELP_TEXT = """t9tb command:
+/status — T9 OS /daily — brief
+/brief — CEO brief ()
+/deadline — deadline list
+/auto — auto Individuating (Geminiclassify/)
+/search <key> — search
+/capture <content> — Preindividual save
+/compose <content> — generate plans
+/tidy — clean up execution
+/ask <> — CCmessage → response inbox save (token 0)"""
 
 
 def handle(text):
-    """메시지 라우팅"""
+    """message """
     if text.startswith("/status"):
         return run_t9("status")
     elif text.startswith("/daily"):
@@ -135,7 +133,7 @@ def handle(text):
     elif text.startswith("/brief"):
         return run_brief()
     elif text.startswith("/deadline"):
-        return run_t9("daily")  # daily에 마감일 포함
+        return run_t9("daily")  # dailydeadline
     elif text.startswith("/search "):
         return run_t9(f"search {text[8:]}")
     elif text.startswith("/capture "):
@@ -151,7 +149,7 @@ def handle(text):
     elif text.startswith("/ask "):
         return run_cc(text[5:])
     else:
-        # 기본 동작: 무응답 inbox 저장 (토큰 0, CC 호출 없음)
+        # default : response inbox save (token 0, CC call not found)
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         slug = text[:20].replace(" ", "_").replace("/", "_").replace("\n", "_")
         filename = f"{ts}_{slug}.md"
@@ -159,14 +157,14 @@ def handle(text):
         inbox.mkdir(parents=True, exist_ok=True)
         filepath = inbox / filename
         filepath.write_text(f"# {text[:50]}\n\n{text}\n\n---\n*via t9tb {ts}*\n", encoding="utf-8")
-        return None  # None = 응답 안 보냄
+        return None  # None = response
 
 
 def main():
     lock_fd = acquire_lock()
-    print(f"t9tb 시작 (PID {os.getpid()})")
+    print(f"t9tb start (PID {os.getpid()})")
     print(f"T9: {T9}")
-    tg_send("t9tb 가동")
+    tg_send("t9tb ")
 
     offset = 0
     while True:
@@ -184,7 +182,7 @@ def main():
                 if chat_id != CHAT_ID:
                     continue
 
-                # 음성/오디오 → 자동 전사
+                # voice/→ auto transcription
                 if msg.get("voice") or msg.get("audio"):
                     file_id = (msg.get("voice") or msg.get("audio"))["file_id"]
                     result = handle_voice(file_id, chat_id)
@@ -197,14 +195,14 @@ def main():
                 print(f"[{time.strftime('%H:%M:%S')}] {text[:50]}")
 
                 result = handle(text)
-                if result is not None:  # None이면 무응답 (inbox 저장)
+                if result is not None:  # Noneresponse (inbox save)
                     tg_send(result, chat_id)
         except KeyboardInterrupt:
-            tg_send("t9tb 종료")
-            print("종료")
+            tg_send("t9tb end")
+            print("end")
             break
         except Exception as e:
-            print(f"[에러] {e}")
+            print(f"[] {e}")
             time.sleep(5)
 
 

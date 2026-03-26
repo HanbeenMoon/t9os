@@ -24,7 +24,7 @@ from pathlib import Path
 
 # ── Paths ──────────────────────────────────────────────
 BASE = Path(__file__).resolve().parent.parent  # T9OS/
-from lib.config import DB_PATH  # WSL 네이티브 DB
+from lib.config import DB_PATH  # WSL DB
 INBOX_DIR = BASE / "field" / "inbox"
 CONSTITUTION_DIR = BASE / "constitution"
 DECISIONS_DIR = BASE / "decisions"
@@ -74,10 +74,10 @@ VALID_TRANSITIONS = {
     "dissolved": {"sediment", "preindividual"},
 }
 
-# Pipeline registry — lib/registry.py 단일 소스 (SRBB)
+# Pipeline registry — lib/registry.py single source (SRBB)
 PIPELINE_REGISTRY = {p["file"]: p["desc"] for p in _REG}
 
-ADR_REQUIRED_FIELDS = ["날짜", "상태", "결정", "이유"]
+ADR_REQUIRED_FIELDS = ["date", "state", "", ""]
 
 
 def get_db_connection():
@@ -501,7 +501,7 @@ def check_adr_completeness():
         }
 
         for field in ADR_REQUIRED_FIELDS:
-            # Check for field presence (as "- 필드:" or "필드:" pattern)
+            # Check for field presence (as "- :" or ":" pattern)
             if field + ":" not in content and f"- {field}:" not in content:
                 entry["has_required_fields"] = False
                 entry["missing_fields"].append(field)

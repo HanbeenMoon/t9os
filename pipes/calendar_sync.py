@@ -38,7 +38,7 @@ TOKEN_URL = "https://oauth2.googleapis.com/token"
 CALENDAR_URL = "https://www.googleapis.com/calendar/v3/calendars/primary/events"
 
 
-## _load_env_local / _get_env 제거 — lib/config.py로 통합됨
+# # _load_env_local / _get_env remove — lib/config.pyIntegrate
 
 
 def _refresh_access_token(
@@ -93,7 +93,7 @@ def _fetch_events(access_token: str, days: int = 2) -> list[dict]:
         end_raw = item.get("end", {})
         events.append({
             "id": item.get("id", ""),
-            "summary": item.get("summary", "(제목 없음)"),
+            "summary": item.get("summary", "(title not found)"),
             "start": start_raw.get("dateTime", start_raw.get("date", "")),
             "end": end_raw.get("dateTime", end_raw.get("date", "")),
             "all_day": bool(start_raw.get("date") and not start_raw.get("dateTime")),
@@ -106,7 +106,7 @@ def _fetch_events(access_token: str, days: int = 2) -> list[dict]:
 def _format_time(iso_str: str) -> str:
     """Extract HH:MM from ISO datetime, or return 'all-day'."""
     if not iso_str or len(iso_str) <= 10:
-        return "종일"
+        return ""
     try:
         dt = datetime.fromisoformat(iso_str)
         return dt.strftime("%H:%M")
@@ -117,19 +117,19 @@ def _format_time(iso_str: str) -> str:
 def _write_inbox_md(events: list[dict], today: str) -> Path:
     """Write events as an MD file in field/inbox/."""
     INBOX_DIR.mkdir(parents=True, exist_ok=True)
-    filename = f"{today}_GoogleCalendar_일정동기화.md"
+    filename = f"{today}_GoogleCalendar_schedulesync.md"
     filepath = INBOX_DIR / filename
 
     lines = [
-        f"# Google Calendar 일정 ({today})",
+        f"# Google Calendar schedule ({today})",
         "",
-        f"동기화 시각: {datetime.now(KST):%Y-%m-%d %H:%M:%S KST}",
-        f"일정 수: {len(events)}건",
+        f"sync : {datetime.now(KST):%Y-%m-%d %H:%M:%S KST}",
+        f"schedule : {len(events)}items",
         "",
     ]
 
     if not events:
-        lines.append("(오늘/내일 일정 없음)")
+        lines.append("(/Tomorrow schedule not found)")
     else:
         # Group by date
         by_date: dict[str, list[dict]] = {}
@@ -138,16 +138,16 @@ def _write_inbox_md(events: list[dict], today: str) -> Path:
             by_date.setdefault(date_key, []).append(ev)
 
         for date_key in sorted(by_date):
-            day_label = "오늘" if date_key == today else "내일"
+            day_label = "" if date_key == today else "Tomorrow"
             lines.append(f"## {date_key} ({day_label})")
             lines.append("")
             for ev in by_date[date_key]:
                 start_t = _format_time(ev["start"])
                 end_t = _format_time(ev["end"])
-                time_str = start_t if start_t == "종일" else f"{start_t}-{end_t}"
+                time_str = start_t if start_t == "" else f"{start_t}-{end_t}"
                 lines.append(f"- [{time_str}] {ev['summary']}")
                 if ev["location"]:
-                    lines.append(f"  장소: {ev['location']}")
+                    lines.append(f"  : {ev['location']}")
             lines.append("")
 
     filepath.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -161,7 +161,7 @@ def _next_log_path() -> Path:
     time_part = now.strftime("%H%M%S")
     existing = sorted(LOG_DIR.glob(f"{date_part}_CC_*_calendar_sync_*"))
     seq = len(existing) + 1
-    return LOG_DIR / f"{date_part}_CC_{seq:03d}_calendar_sync_{time_part}_결과.txt"
+    return LOG_DIR / f"{date_part}_CC_{seq:03d}_calendar_sync_{time_part}_result.txt"
 
 
 def main() -> int:

@@ -1,37 +1,38 @@
-"""T9 OS 공통 설정 — 환경변수, 경로, API 키를 한 곳에서 관리.
+"""T9 OS shared config — env vars, paths, API keys in one place.
 
-모든 파이프라인은 이 모듈에서 import해서 사용한다.
-중복 로드 코드를 각 파이프라인에 두지 않는다.
+All pipelines import from this module.
+No duplicate loading code in individual pipelines.
 
-사용법:
+Usage:
     from lib.config import GEMINI_KEY, TG_TOKEN, TG_CHAT, HANBEEN, T9, DB_PATH
 """
 import os
 from pathlib import Path
 
-# ─── 경로 상수 ────────────────────────────────────────────────
+# ─── Path constants ────────────────────────────────────────────────
 T9 = Path(__file__).resolve().parent.parent          # T9OS/
-HANBEEN = T9.parent                                   # ~/code/HANBEEN/
-# DB는 WSL 네이티브 경로 (NTFS 잠금 방지, ADR-074)
-# fallback: T9OS/.t9.db (NTFS, 레거시 호환)
+HANBEEN = T9.parent                                   # project root
+# DB uses WSL native path (NTFS lock prevention, ADR-074)
+# fallback: T9OS/.t9.db (NTFS, legacy compat)
 _WSL_DB = Path.home() / ".t9os_data" / ".t9.db"
 DB_PATH = _WSL_DB if _WSL_DB.exists() else T9 / ".t9.db"
 INBOX_DIR = T9 / "field" / "inbox"
 LOG_DIR = HANBEEN / "_ai" / "logs" / "cc"
 PIPES_DIR = T9 / "pipes"
 
-# ─── 환경변수 로드 (단일 진입점) ──────────────────────────────
-# 단일 소스: _keys/.env.sh (2026-03-23 통합)
-# os.environ이 최우선, 그 다음 .env.sh
-_ENV_FILES = [
-    HANBEEN / "_keys" / ".env.sh",
+# ─── Env var loading (single entry point) ──────────────────────────────
+# Load from env files if present, os.environ takes priority
+_ENV_FILES_CANDIDATES = [
+    HANBEEN / "_keys" / ".env.sh",     # primary
+    HANBEEN / ".env",                   # alternative
 ]
+_ENV_FILES = [f for f in _ENV_FILES_CANDIDATES if f.exists()]
 
 _loaded: dict[str, str] = {}
 
 
 def _parse_env_file(path: Path) -> dict[str, str]:
-    """KEY=VALUE 또는 export KEY=VALUE 형식 파일 파싱."""
+    """Parse KEY=VALUE or export KEY=VALUE format files."""
     if not path.exists():
         return {}
     result: dict[str, str] = {}
@@ -46,35 +47,35 @@ def _parse_env_file(path: Path) -> dict[str, str]:
             continue
         k, _, v = line.partition("=")
         k = k.strip()
-        v = v.strip().strip('"').strip("'")
+        v = v.strip().strip('"').strip("'").strip('\r\n')
         result[k] = v
     return result
 
 
 def _load_all() -> dict[str, str]:
-    """모든 env 파일을 역순으로 로드 (나중 파일이 먼저 덮이도록)."""
+    """Load all env files in reverse order (later files get overwritten by earlier ones)."""
     global _loaded
     if _loaded:
         return _loaded
     merged: dict[str, str] = {}
-    # 역순으로 로드 → 앞의 파일이 우선
+    # Reverse load → earlier files take priority
     for f in reversed(_ENV_FILES):
         merged.update(_parse_env_file(f))
-    # os.environ이 최우선
-    merged.update(os.environ)
+    # os.environ takes priority (strip \r\n to prevent NTFS contamination)
+    merged.update({k: v.strip('\r\n') for k, v in os.environ.items()})
     _loaded = merged
     return _loaded
 
 
 def get(key: str, default: str = "") -> str:
-    """환경변수 조회. os.environ > _keys/.env.sh 순."""
+    """Env var lookup. os.environ > env file priority."""
     return _load_all().get(key, default)
 
 
-# ─── 자주 쓰는 키 (import 즉시 사용 가능) ─────────────────────
+# ─── Frequently used keys (available on import) ─────────────────────
 
 def _init_keys():
-    """모듈 로드 시 키 초기화."""
+    """Initialize keys on module load."""
     env = _load_all()
     return {
         "GEMINI_KEY": env.get("GEMINI_API_KEY", env.get("GOOGLE_API_KEY", "")),

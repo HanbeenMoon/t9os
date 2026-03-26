@@ -63,19 +63,19 @@ HELP_TEXT = """\
 Manage your tasks with natural language — Korean or English.
 
 *Add a task:*
-  "내일까지 보고서 제출"
+  "Tomorrow report "
   "add report by Friday"
-  "긴급 서버 점검"
+  "urgent  "
 
 *Complete a task:*
-  "완료 #3"
+  "completed #3"
   "complete #5"
 
 *View tasks:*
-  "목록" / "list" / "show tasks"
+  "list" / "list" / "show tasks"
 
 *Daily summary:*
-  "요약" / "summary"
+  "summary" / "summary"
 
 *Commands:*
   /help — show this message
@@ -83,8 +83,7 @@ Manage your tasks with natural language — Korean or English.
   /summary — daily digest
 
 Priority is auto-detected from keywords:
-  🔴 urgent/긴급  🟠 high/중요  🟡 medium  🟢 low/나중
-"""
+  🔴 urgent/urgent  🟠 high/🟡 medium  🟢 low/"""
 
 
 def _response_add(title: str, due: str | None, priority: str, task_id: int) -> str:

@@ -1,22 +1,10 @@
-# ADR-026: .gitignore 전면 정리 + ARCHIVE 침전 패턴
+# ADR-026: Gitignore Overhaul + Archive Sedimentation
 
-- 날짜: 2026-03-17
-- 상태: 채택됨
-- 결정: `.gitignore`를 전면 재설계하여 T9OS/, _legacy/, _ai/, .claude/ 등 로컬 전용 디렉토리를 git 추적에서 제외한다. 완료된 프로젝트(외부의뢰 스테이블코인)를 ARCHIVE/로 이동하고 git에서 삭제(침전)한다. untracked 파일 수백 개를 1개로 정리.
-- 이유:
-  - T9 OS 구축 과정에서 로컬 전용 파일(SQLite DB, 로그, 레거시 데이터, 세션 메타)이 대량 생성되었다. 이것들이 git에 추적되면 커밋 크기가 비대해지고, 보안 위험(API 키 노출)이 발생한다.
-  - 완료된 프로젝트가 레포 루트에 남아있으면 활성 프로젝트와 혼동된다.
-  - "침전(sedimentation)"은 시몽동의 안정화 개념에서 차용: 완전히 개체화된(stabilized) 엔티티는 활성 영역에서 침전층으로 이동한다.
-  - untracked 수백 개는 git status를 무용화시킨다.
-- 대안:
-  - **전부 추적**: 레포 크기 폭증, 보안 위험 — 폐기.
-  - **별도 레포 분리**: 관리 복잡도 증가, 단일 레포가 단순 — 불채택.
-  - **완료 프로젝트 삭제**: 참조 가치 있는 데이터 유실 — 불채택 (ARCHIVE 유지).
-- 결과:
-  - `.gitignore`에 체계적인 제외 규칙 설정 (T9OS/, _legacy/, _ai/, _keys/, .claude/ 등).
-  - ARCHIVE/ 디렉토리는 로컬에만 존재, git에서는 보이지 않음.
-  - git status가 깔끔해져 실제 변경사항 파악이 용이.
-  - 새 프로젝트 완료 시 동일한 침전 패턴 적용 가능.
+- Date: 2026-03-17
+- Status: Accepted
+- Decision: Redesign `.gitignore` to exclude local-only directories from git tracking. Completed/inactive projects move to archive and are removed from git (sedimentation pattern).
+- Rationale: Hundreds of untracked files create noise. Completed projects cluttering the active workspace violate the sedimentation principle.
+- Outcome: Clean `.gitignore`, archive sedimentation pattern
 
 ## Simondon Mapping
-이 결정이 시몽동의 어떤 원리를 구현하는가: 안정화(stabilisation)와 침전 — 완전히 개체화된 엔티티는 활성 개체화 영역을 떠나 안정층(ARCHIVE)으로 침전한다. 이는 시스템의 메타안정성을 유지하기 위해 완료된 것을 활성 영역에서 분리하는 것이다.
+Sedimentation — completed structures sink into background storage, remaining searchable but no longer occupying active attention.

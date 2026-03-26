@@ -1,12 +1,10 @@
-# ADR-046: 세션 개체화 프로토콜 — 매 세션 종료 시 필수
+# ADR-046: Session Individuation Protocol
 
-- 날짜: 2026-03-16
-- 상태: 채택됨
-- 결정: 매 세션 종료 시 5단계 개체화를 수행한다: (1) 작업 등록(capture), (2) 상태 전이(transition), (3) 전도적 관계(relate), (4) 규칙 갱신(L1/L2 + CLAUDE.md + memory 동시), (5) reindex. 형식적 보고 금지 — 할 게 없으면 넘어감.
-- 이유: 세션 간 학습이 전파되지 않으면 같은 실수를 반복함. 특히 "규칙 갱신"은 L1/L2/CLAUDE.md/memory 4곳을 동시에 갱신해야 다음 세션이 학습을 물려받음.
-- 대안: 수동 기록 (까먹음), 자동 요약만 (행동 가능하지 않음)
-- 결과: session-end.sh 훅에 자동화, CLAUDE.md 섹션 10에 프로토콜 명시
-- 출처: 20260316_CC_003_041500_T9OS_v02_시몽동개정_model-project_project-alpha.txt, L1_execution.md
+- Date: 2026-03-16
+- Status: Accepted
+- Decision: Every session end requires 5-step individuation: (1) capture work, (2) transition states, (3) record transductive relations, (4) update rules (L1/L2 + CLAUDE.md + memory simultaneously), (5) reindex. No pro-forma reports — skip if nothing to report.
+- Rationale: Sessions are themselves individuations. Without structured closure, learnings are lost and state drifts.
+- Outcome: Session-end hook automation
 
 ## Simondon Mapping
-잔여 전개체성의 보존: 세션이 끝나도 미완의 잠재성(규칙 변경, 관계 발견)이 다음 세션의 개체화 자원으로 남도록 구조화.
+Each session is an individuation event — it must leave a trace (residual preindividuality) that seeds the next session.

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""T9 마감일 텔레그램 알림 — t9_seed.py daily에서 마감일을 읽는다.
+"""T9 deadline Telegram notification — t9_seed.py dailydeadline.
 
-기존: 노션 dump 텍스트 파일에서 파싱 (죽은 데이터)
-변경: t9_seed.py daily 출력 + state.md 파싱 (라이브 데이터)
+existing: dump file()
+change: t9_seed.py daily output + state.md ()
 """
 import re
 import subprocess
@@ -22,7 +22,7 @@ T9_SEED = T9 / "t9_seed.py"
 
 
 def load_deadlines_from_seed():
-    """t9_seed.py daily 출력에서 마감일 파싱."""
+    """t9_seed.py daily outputdeadline ."""
     try:
         result = subprocess.run(
             ["python3", str(T9_SEED), "daily"],
@@ -34,31 +34,31 @@ def load_deadlines_from_seed():
 
     deadlines = []
     for line in lines:
-        # "D-4    2026-03-24 예비창업패키지 신청 마감 *긴급*" 패턴
+        # "D-4    2026-03-24 keydeadline *URGENT*" pattern
         m = re.match(r'\s*D-(\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)', line)
         if m:
             delta = int(m.group(1))
             date_str = m.group(2)
-            name = m.group(3).strip().rstrip('*긴급* ').strip()
+            name = m.group(3).strip().rstrip('*URGENT* ').strip()
             deadlines.append((delta, date_str, name))
 
     return sorted(deadlines)
 
 
 def load_deadlines_from_state():
-    """state.md에서 마감일 파싱 (백업 소스)."""
+    """state.mddeadline (backup )."""
     if not STATE_MD.exists():
         return []
     content = STATE_MD.read_text(encoding="utf-8")
     deadlines = []
     today = datetime.now().date()
     for line in content.splitlines():
-        # "- **D-5** 2026-03-24 예창패 마감" 패턴
+        # "- **D-5** 2026-03-24 deadline" pattern
         m = re.match(r'\s*-\s+\*\*D-(\d+)\*\*\s+(\d{4}-\d{2}-\d{2})\s+(.+)', line)
         if m:
             delta = int(m.group(1))
             name = m.group(3).strip()
-            # D-N을 실제 날짜 기준으로 재계산
+            # D-Ndate criteria
             date_obj = datetime.strptime(m.group(2), "%Y-%m-%d").date()
             real_delta = (date_obj - today).days
             deadlines.append((real_delta, m.group(2), name))
@@ -66,7 +66,7 @@ def load_deadlines_from_state():
 
 
 def notify():
-    """마감일 알림 — D-7 이내만."""
+    """deadline notification — D-7 ."""
     deadlines = load_deadlines_from_seed()
     if not deadlines:
         deadlines = load_deadlines_from_state()
@@ -77,14 +77,14 @@ def notify():
     if not urgent:
         return
 
-    msg = "📅 T9 마감일 알림\n\n"
+    msg = "📅 T9 deadline notification\n\n"
     for delta, date_str, name in urgent:
         if delta < 0:
-            label = "⚠️ 지남!"
+            label = "⚠️ !"
         elif delta == 0:
-            label = "🔴 오늘!"
+            label = "🔴 Today!"
         elif delta == 1:
-            label = "🟠 내일"
+            label = "🟠 Tomorrow"
         elif delta <= 3:
             label = f"🟡 D-{delta}"
         else:

@@ -1,13 +1,12 @@
-"""T9 OS Session Lock — 프로젝트/파일 단위 충돌 방지
+"""T9 OS Session Lock — project/file 
+session fileitems.
+- project claim: project namefile pattern claim
+- file claim: file/pattern claim
+- conflict check: modify session claim check
+- heartbeat: 30 min response auto expired
+- JSON sync: .session_locks.jsonstate record
 
-세션 간 같은 파일을 모르고 건드리는 문제를 해결한다.
-- project claim: 프로젝트 이름으로 관련 파일 패턴 일괄 claim
-- file claim: 개별 파일/패턴 claim
-- conflict check: 수정 전 다른 세션 claim 여부 확인
-- heartbeat: 30분 무응답 시 자동 만료
-- JSON sync: .session_locks.json에 사람이 읽을 수 있는 상태 기록
-
-stdlib만 사용. 단일 파일. 경로 하드코딩 금지.
+stdlibuse. file. path hardcoded .
 """
 import json
 import os
@@ -21,7 +20,7 @@ HANBEEN = T9.parent
 LOCKS_JSON = T9 / ".session_locks.json"
 SESSION_FILE = Path.home() / ".t9_current_session"
 
-# 프로젝트 → 파일 패턴 매핑 (소프트코딩: JSON 설정 파일에서 오버라이드 가능)
+# project → file pattern mapping (: JSON config file)
 _DEFAULT_PROJECT_PATTERNS = {
     "ODNAR":      ["PROJECTS/ODNAR/*", "T9OS/artifacts/odnar_*/*"],
     "SSK":        ["PROJECTS/SSK_RA/*", "T9OS/artifacts/ssk_*/*"],
@@ -41,14 +40,14 @@ HEARTBEAT_TIMEOUT_MIN = 30
 
 
 def _get_session_id() -> str:
-    """현재 세션 ID를 읽는다. 없으면 PID 기반으로 생성."""
+    """current session ID. PID create."""
     if SESSION_FILE.exists():
         return SESSION_FILE.read_text().strip()
     return f"unknown_{os.getpid()}"
 
 
 def _load_locks() -> dict:
-    """JSON 잠금 파일을 읽는다. 없으면 빈 구조."""
+    """JSON file. structure."""
     if LOCKS_JSON.exists():
         try:
             return json.loads(LOCKS_JSON.read_text(encoding="utf-8"))
@@ -58,7 +57,7 @@ def _load_locks() -> dict:
 
 
 def _save_locks(data: dict) -> None:
-    """JSON 잠금 파일에 쓴다."""
+    """JSON file."""
     LOCKS_JSON.write_text(
         json.dumps(data, ensure_ascii=False, indent=2),
         encoding="utf-8",
@@ -70,7 +69,7 @@ def _now_iso() -> str:
 
 
 def _is_stale(session: dict) -> bool:
-    """heartbeat가 HEARTBEAT_TIMEOUT_MIN 이상 지났으면 stale."""
+    """heartbeatHEARTBEAT_TIMEOUT_MIN stale."""
     hb = session.get("last_heartbeat", session.get("started", ""))
     if not hb:
         return True
@@ -82,7 +81,7 @@ def _is_stale(session: dict) -> bool:
 
 
 def _cleanup_stale(data: dict) -> list[str]:
-    """stale 세션을 제거하고 제거된 세션 ID 리스트를 반환."""
+    """stale sessionremoveremovesession ID return."""
     removed = []
     for sid in list(data["sessions"].keys()):
         if _is_stale(data["sessions"][sid]):
@@ -92,7 +91,7 @@ def _cleanup_stale(data: dict) -> list[str]:
 
 
 def _get_project_patterns(project: str) -> list[str]:
-    """프로젝트에 해당하는 파일 패턴을 반환. 커스텀 설정 파일 우선."""
+    """projectfile patternreturn. config file ."""
     custom_path = T9 / "config" / "project_patterns.json"
     patterns = dict(_DEFAULT_PROJECT_PATTERNS)
     if custom_path.exists():
@@ -101,33 +100,33 @@ def _get_project_patterns(project: str) -> list[str]:
             patterns.update(custom)
         except (json.JSONDecodeError, OSError):
             pass
-    # 대소문자 무시 매칭
+    # skip
     for key in patterns:
         if key.upper() == project.upper():
             return patterns[key]
-    # 매칭 안 되면 PROJECTS/<project>/* 기본 패턴
+    # PROJECTS/<project>/* default pattern
     return [f"PROJECTS/{project}/*", f"T9OS/artifacts/{project.lower()}_*/*"]
 
 
 def _patterns_overlap(patterns_a: list[str], patterns_b: list[str]) -> list[str]:
-    """두 패턴 집합이 겹치는 패턴을 반환.
-    정확한 파일 패턴끼리만 비교한다. 디렉토리 패턴은 같은 디렉토리인지만 확인."""
+    """pattern patternreturn.
+    file patterncompare. patterncheck."""
     overlaps = []
     for pa in patterns_a:
         for pb in patterns_b:
             if pa == pb:
                 overlaps.append(pa)
                 continue
-            # 구체적 파일 경로가 다른 쪽 패턴에 매칭되는지
+            # file pathpattern
             if not pa.endswith("*") and _file_matches_patterns(pa, [pb]):
                 overlaps.append(f"{pa} <-> {pb}")
             elif not pb.endswith("*") and _file_matches_patterns(pb, [pa]):
                 overlaps.append(f"{pa} <-> {pb}")
-            # 디렉토리 glob끼리는 정확히 같은 디렉토리 prefix일 때만
+            # globprefix
             elif pa.endswith("/*") and pb.endswith("/*"):
                 pa_dir = pa[:-2]
                 pb_dir = pb[:-2]
-                # 정확히 같거나, 한쪽이 다른 쪽의 하위인 경우
+                #
                 if pa_dir == pb_dir:
                     overlaps.append(pa)
                 elif pa_dir.startswith(pb_dir + "/") or pb_dir.startswith(pa_dir + "/"):
@@ -136,30 +135,30 @@ def _patterns_overlap(patterns_a: list[str], patterns_b: list[str]) -> list[str]
 
 
 def _file_matches_patterns(filepath: str, patterns: list[str]) -> bool:
-    """파일 경로가 패턴 리스트 중 하나와 매칭되는지 확인."""
+    """file pathpattern check."""
     for pattern in patterns:
         if fnmatch.fnmatch(filepath, pattern):
             return True
-        # 디렉토리 패턴 (끝이 /*)인 경우, 하위 경로도 매칭
+        # pattern (/*), path
         if pattern.endswith("/*") and filepath.startswith(pattern[:-2]):
             return True
     return False
 
 
-# ─── 핵심 API ────────────────────────────────────────────────────
+# ─── API ────────────────────────────────────────
 
 
 def claim_project(project: str, description: str = "") -> bool:
-    """프로젝트를 현재 세션에 claim. 충돌 시 False 반환."""
+    """projectcurrent sessionclaim. False return."""
     sid = _get_session_id()
     data = _load_locks()
     removed = _cleanup_stale(data)
     if removed:
-        print(f"  [stale] 만료된 세션 {len(removed)}개 정리: {', '.join(removed)}")
+        print(f"  [stale] expiredsession {len(removed)}clean up: {', '.join(removed)}")
 
     patterns = _get_project_patterns(project)
 
-    # 다른 세션과 충돌 검사
+    # session
     for other_sid, other in data["sessions"].items():
         if other_sid == sid:
             continue
@@ -167,13 +166,13 @@ def claim_project(project: str, description: str = "") -> bool:
         overlaps = _patterns_overlap(patterns, other_patterns)
         if overlaps:
             other_projects = ", ".join(other.get("working_on", []))
-            print(f"  [CONFLICT] {project} 패턴이 세션 {other_sid} ({other_projects})와 충돌:")
+            print(f"  [CONFLICT] {project} patternsession {other_sid} ({other_projects}):")
             for o in overlaps:
                 print(f"    - {o}")
-            print(f"  -> 해당 세션이 release할 때까지 대기하거나 수동 조율 필요")
+            print(f"  -> sessionreleasemanual ")
             return False
 
-    # claim 등록
+    # claim register
     now = _now_iso()
     if sid not in data["sessions"]:
         data["sessions"][sid] = {
@@ -187,7 +186,7 @@ def claim_project(project: str, description: str = "") -> bool:
     session = data["sessions"][sid]
     if project.upper() not in [p.upper() for p in session["working_on"]]:
         session["working_on"].append(project)
-    # 패턴 추가 (중복 제거)
+    # pattern add (duplicate remove)
     for p in patterns:
         if p not in session["files_claimed"]:
             session["files_claimed"].append(p)
@@ -196,24 +195,24 @@ def claim_project(project: str, description: str = "") -> bool:
     session["last_heartbeat"] = now
 
     _save_locks(data)
-    print(f"  [CLAIMED] {project} -> 세션 {sid}")
-    print(f"    패턴: {', '.join(patterns)}")
+    print(f"  [CLAIMED] {project} -> session {sid}")
+    print(f"    pattern: {', '.join(patterns)}")
     return True
 
 
 def claim_file(filepath: str) -> bool:
-    """개별 파일/패턴을 현재 세션에 claim."""
+    """file/patterncurrent sessionclaim."""
     sid = _get_session_id()
     data = _load_locks()
     _cleanup_stale(data)
 
-    # 다른 세션 충돌 검사
+    # session
     for other_sid, other in data["sessions"].items():
         if other_sid == sid:
             continue
         if _file_matches_patterns(filepath, other.get("files_claimed", [])):
             other_projects = ", ".join(other.get("working_on", []))
-            print(f"  [CONFLICT] {filepath} -> 세션 {other_sid} ({other_projects})가 이미 claim 중")
+            print(f"  [CONFLICT] {filepath} -> session {other_sid} ({other_projects})claim ")
             return False
 
     now = _now_iso()
@@ -232,12 +231,12 @@ def claim_file(filepath: str) -> bool:
     session["last_heartbeat"] = now
 
     _save_locks(data)
-    print(f"  [CLAIMED] {filepath} -> 세션 {sid}")
+    print(f"  [CLAIMED] {filepath} -> session {sid}")
     return True
 
 
 def check_file(filepath: str) -> dict | None:
-    """파일 수정 전 호출. 다른 세션이 claim 중이면 해당 세션 정보 반환."""
+    """file modify call. claimed by another sessionsession return."""
     sid = _get_session_id()
     data = _load_locks()
     _cleanup_stale(data)
@@ -256,13 +255,13 @@ def check_file(filepath: str) -> dict | None:
 
 
 def check_conflicts() -> list[dict]:
-    """현재 세션의 claim과 다른 세션의 claim이 겹치는 것을 모두 반환."""
+    """current sessionclaimsessionclaimreturn."""
     sid = _get_session_id()
     data = _load_locks()
     _cleanup_stale(data)
 
     if sid not in data["sessions"]:
-        print("  현재 세션에 claim 없음")
+        print("  current sessionclaim not found")
         return []
 
     my_patterns = data["sessions"][sid].get("files_claimed", [])
@@ -280,19 +279,19 @@ def check_conflicts() -> list[dict]:
             })
 
     if conflicts:
-        print(f"  [WARNING] {len(conflicts)}개 세션과 충돌 가능:")
+        print(f"  [WARNING] {len(conflicts)}session:")
         for c in conflicts:
             print(f"    - {c['session_id']} ({', '.join(c['working_on'])})")
             for o in c["overlaps"]:
                 print(f"      {o}")
     else:
-        print("  충돌 없음")
+        print("  not found")
 
     return conflicts
 
 
 def heartbeat(description: str = "") -> None:
-    """세션 heartbeat 갱신. 30분마다 호출 권장."""
+    """session heartbeat update. 30 mincall ."""
     sid = _get_session_id()
     data = _load_locks()
 
@@ -304,75 +303,75 @@ def heartbeat(description: str = "") -> None:
 
 
 def release(project: str | None = None) -> None:
-    """현재 세션의 claim을 해제. project 지정 시 해당 프로젝트만."""
+    """current sessionclaim. project project."""
     sid = _get_session_id()
     data = _load_locks()
 
     if sid not in data["sessions"]:
-        print("  현재 세션에 claim 없음")
+        print("  current sessionclaim not found")
         return
 
     if project is None:
-        # 전체 해제
+        # total
         del data["sessions"][sid]
         _save_locks(data)
-        print(f"  [RELEASED] 세션 {sid} 전체 해제")
+        print(f"  [RELEASED] session {sid} total ")
     else:
         session = data["sessions"][sid]
-        # 프로젝트 제거
+        # project remove
         session["working_on"] = [
             p for p in session["working_on"]
             if p.upper() != project.upper()
         ]
-        # 해당 프로젝트 패턴 제거
+        # project pattern remove
         project_patterns = set(_get_project_patterns(project))
         session["files_claimed"] = [
             p for p in session["files_claimed"]
             if p not in project_patterns
         ]
-        # 아무것도 안 남으면 세션 자체 삭제
+        # session delete
         if not session["working_on"] and not session["files_claimed"]:
             del data["sessions"][sid]
         _save_locks(data)
-        print(f"  [RELEASED] {project} from 세션 {sid}")
+        print(f"  [RELEASED] {project} from session {sid}")
 
 
 def list_sessions() -> None:
-    """활성 세션 목록을 출력."""
+    """active session listoutput."""
     data = _load_locks()
     removed = _cleanup_stale(data)
     if removed:
         _save_locks(data)
-        print(f"  [stale] 만료된 세션 {len(removed)}개 정리")
+        print(f"  [stale] expiredsession {len(removed)}clean up")
 
     sessions = data.get("sessions", {})
     if not sessions:
-        print("  활성 세션 없음 (claim된 프로젝트 없음)")
+        print("  active session not found (claimproject not found)")
         return
 
-    print(f"\n  === 활성 세션 {len(sessions)}개 ===\n")
+    print(f"\n  === active session {len(sessions)}===\n")
     for sid, s in sessions.items():
-        projects = ", ".join(s.get("working_on", [])) or "(없음)"
+        projects = ", ".join(s.get("working_on", [])) or "(not found)"
         desc = s.get("description", "")
         started = s.get("started", "?")[:16]
         hb = s.get("last_heartbeat", "?")[:16]
         print(f"  [{sid}]")
-        print(f"    프로젝트: {projects}")
+        print(f"    project: {projects}")
         if desc:
-            print(f"    설명: {desc}")
-        print(f"    시작: {started}  heartbeat: {hb}")
+            print(f"    : {desc}")
+        print(f"    start: {started}  heartbeat: {hb}")
         claimed = s.get("files_claimed", [])
         if claimed:
             print(f"    claimed ({len(claimed)}):")
             for p in claimed[:10]:
                 print(f"      - {p}")
             if len(claimed) > 10:
-                print(f"      ... (+{len(claimed)-10}개)")
+                print(f"      ... (+{len(claimed)-10})")
         print()
 
 
 def sync_working_md() -> None:
-    """WORKING.md의 [SESSIONS] 섹션을 자동 갱신. 기존 내용은 보존."""
+    """WORKING.md[SESSIONS] auto update. existing content."""
     data = _load_locks()
     _cleanup_stale(data)
     sessions = data.get("sessions", {})
@@ -383,8 +382,8 @@ def sync_working_md() -> None:
 
     content = working_md.read_text(encoding="utf-8")
 
-    # [SESSIONS] 섹션 생성
-    section = f"\n## [SESSIONS] 활성 claim ({_now_iso()[:16]})\n\n"
+    # [SESSIONS] create
+    section = f"\n## [SESSIONS] active claim ({_now_iso()[:16]})\n\n"
     if sessions:
         for sid, s in sessions.items():
             projects = ", ".join(s.get("working_on", []))
@@ -399,18 +398,18 @@ def sync_working_md() -> None:
                 section += f"- claimed: {', '.join(claimed[:5])}\n"
             section += "\n"
     else:
-        section += "활성 claim 없음\n\n"
+        section += "active claim not found\n\n"
 
-    # [SESSIONS] 섹션만 교체
+    # [SESSIONS]
     pattern = r'\n## \[SESSIONS\][^\n]*\n(?:(?!\n## [^[]).)*'
     if re.search(pattern, content, re.DOTALL):
         content = re.sub(pattern, section, content, count=1, flags=re.DOTALL)
     else:
-        # *갱신: 줄 바로 위에 삽입
-        if "*갱신:" in content:
+        # *update:
+        if "*update:" in content:
             content = content.replace(
-                "\n*갱신:",
-                section + "*갱신:",
+                "\n*update:",
+                section + "*update:",
             )
         else:
             content += section
@@ -422,16 +421,16 @@ def sync_working_md() -> None:
 
 
 def cli_main(args: list[str]) -> None:
-    """CLI 엔트리포인트. t9_seed.py에서 호출."""
+    """CLI . t9_seed.pycall."""
     if not args:
-        print("  사용법:")
-        print("    claim <project> [description]  — 프로젝트 claim")
-        print("    claim-file <path>              — 파일 claim")
-        print("    check <path>                   — 파일 충돌 확인")
-        print("    check-conflicts                — 전체 충돌 확인")
-        print("    sessions                       — 활성 세션 목록")
-        print("    release [project]              — claim 해제")
-        print("    heartbeat [description]        — heartbeat 갱신")
+        print("  use:")
+        print("    claim <project> [description]  — project claim")
+        print("    claim-file <path>              — file claim")
+        print("    check <path>                   — file conflict check")
+        print("    check-conflicts                — total check")
+        print("    sessions                       — active session list")
+        print("    release [project]              — release claim")
+        print("    heartbeat [description]        — heartbeat update")
         return
 
     cmd = args[0]
@@ -445,9 +444,9 @@ def cli_main(args: list[str]) -> None:
     elif cmd == "check" and len(args) >= 2:
         result = check_file(args[1])
         if result:
-            print(f"  [BLOCKED] {args[1]} -> 세션 {result['session_id']} ({', '.join(result['working_on'])})")
+            print(f"  [BLOCKED] {args[1]} -> session {result['session_id']} ({', '.join(result['working_on'])})")
         else:
-            print(f"  [OK] {args[1]} -> claim 없음, 수정 가능")
+            print(f"  [OK] {args[1]} -> claim not found, modify ")
     elif cmd == "check-conflicts":
         check_conflicts()
     elif cmd == "sessions":
@@ -460,7 +459,7 @@ def cli_main(args: list[str]) -> None:
         desc = " ".join(args[1:]) if len(args) > 1 else ""
         heartbeat(desc)
     else:
-        print(f"  알 수 없는 명령: {cmd}")
+        print(f"  unknown command: {cmd}")
 
 
 if __name__ == "__main__":

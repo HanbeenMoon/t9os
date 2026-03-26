@@ -1,19 +1,19 @@
-"""T9 OS JSON Export — 대시보드용"""
+"""T9 OS JSON Export — """
 import json, sqlite3
 from datetime import datetime
 from pathlib import Path
 
 T9 = Path(__file__).resolve().parent.parent
-from lib.config import DB_PATH  # WSL 네이티브 DB
+from lib.config import DB_PATH  # WSL DB
 FIELD = T9 / "field" / "inbox"
 DEADLINE_CANDIDATES = [
-    T9.parent / "_legacy" / "_notion_dump" / "T9_마감일.txt",
-    T9.parent / "_notion_dump" / "T9_마감일.txt",
-    T9 / "data" / "notion_dump" / "T9_마감일.txt",
+    T9.parent / "_legacy" / "_notion_dump" / "T9_deadlines.txt",
+    T9.parent / "_notion_dump" / "T9_deadlines.txt",
+    T9 / "data" / "notion_dump" / "T9_deadlines.txt",
 ]
 
 def cmd_export_json():
-    """모든 entities + transitions를 JSON으로 stdout에 출력 (대시보드용)."""
+    """entities + transitionsJSONstdoutoutput ()."""
     conn = sqlite3.connect(str(DB_PATH)); conn.row_factory = sqlite3.Row
 
     # entities
@@ -80,25 +80,22 @@ def cmd_export_json():
     conn.close()
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
-# ─── CLI 진입점 ──────────────────────────────────────────────────────────────
+# ─── CLI ────────────────────────────────────────
 
 USAGE = """
   T9 OS Seed v0.2 -- Simondonian Engine
 
-  capture <text>                       전개체 저장 (tension 자동 감지 + disparation 기록)
-  reindex                              파일 -> SQLite (정규 컬럼 포함)
-  search <query>                       자유 검색
-  status                               상태 요약 + 관계 수
-  daily                                일일 브리프 + 마감일 + 전도적 학습
-  transition <id> <phase> [reason]     상태 전이
-  compose <text>                       동적 플랜 생성 (concepts/urgency/disparation 기반)
-  approve <id> <plan>                  플랜 승인
-  reflect                              주간 반성
-  consolidate                          아카이브 -> memory/
-  watch [sec]                          파일 감시
-  history <id>                         전이 이력 + 관계 + 부모
-  relate <id1> <id2> [dir] [desc]      엔티티 연결 (transduction, 방향성)
-  digest                               다이제스트 파일 FTS 인덱싱
-  legacy <query>                       레거시 검색
+  capture <text>                       Preindividual save (tension auto + disparation record)
+  reindex                              file -> SQLite (column )
+  search <query>                       search
+  status                               state summary +   daily                                daily brief + deadline + transductive learning
+  transition <id> <phase> [reason]     state transition
+  compose <text>                       generate plans (concepts/urgency/disparation )
+  approve <id> <plan>                  approve plan
+  reflect                              weekly reflection
+  consolidate                          archive -> memory/
+  watch [sec]                          file monitoring
+  history <id>                         transition history + +   relate <id1> <id2> [dir] [desc]      entity relation (transduction, )
+  digest                               file FTS   legacy <query>                       search
 """
 

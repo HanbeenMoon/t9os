@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """T9 OS v2 — t9_seed MCP Server
-t9_seed.py를 MCP 서버로 래핑하여 cc가 Bash 경유 없이 도구로 직접 호출.
+t9_seed.pyMCP ccBash toolcall.
 
 Usage:
-    .mcp.json에 등록:
+    .mcp.jsonregister:
     {
       "mcpServers": {
         "t9-seed": {
@@ -23,7 +23,7 @@ SEED_PATH = os.path.join(os.path.dirname(__file__), '..', 't9_seed.py')
 PROJECT_DIR = os.path.join(os.path.dirname(__file__), '..', '..')
 
 def run_seed(args: list[str]) -> str:
-    """t9_seed.py를 서브프로세스로 실행."""
+    """t9_seed.pyprocessexecution."""
     try:
         result = subprocess.run(
             ['python3', SEED_PATH] + args,
@@ -39,70 +39,70 @@ def run_seed(args: list[str]) -> str:
     except Exception as e:
         return f"[error] {e}"
 
-# MCP 도구 정의
+# MCP tool definition
 TOOLS = {
     "t9_capture": {
-        "description": "전개체 저장. 설계자의 날것 입력을 T9 OS에 등록.",
+        "description": "Preindividual save. designer  input T9 OS register.",
         "inputSchema": {
             "type": "object",
-            "properties": {"text": {"type": "string", "description": "저장할 텍스트"}},
+            "properties": {"text": {"type": "string", "description": "save "}},
             "required": ["text"]
         },
         "handler": lambda args: run_seed(["capture", args["text"]])
     },
     "t9_status": {
-        "description": "T9 OS 전체 현황 조회.",
+        "description": "T9 OS overall status query.",
         "inputSchema": {"type": "object", "properties": {}},
         "handler": lambda args: run_seed(["status"])
     },
     "t9_daily": {
-        "description": "일일 브리프 생성. 마감일, 긴급 사항, 프로젝트 상태.",
+        "description": "daily brief create. deadline, urgent , project state.",
         "inputSchema": {"type": "object", "properties": {}},
         "handler": lambda args: run_seed(["daily"])
     },
     "t9_search": {
-        "description": "자유 검색 (FTS). 엔티티, 메타데이터, 본문 전체 검색.",
+        "description": " search (FTS). , metadata, body total search.",
         "inputSchema": {
             "type": "object",
-            "properties": {"query": {"type": "string", "description": "검색 쿼리"}},
+            "properties": {"query": {"type": "string", "description": "search query"}},
             "required": ["query"]
         },
         "handler": lambda args: run_seed(["search", args["query"]])
     },
     "t9_transition": {
-        "description": "엔티티 상태 전이.",
+        "description": " state transition.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "id": {"type": "string", "description": "엔티티 ID"},
-                "phase": {"type": "string", "description": "목표 상태"},
-                "reason": {"type": "string", "description": "전이 사유", "default": ""}
+                "id": {"type": "string", "description": " ID"},
+                "phase": {"type": "string", "description": " state"},
+                "reason": {"type": "string", "description": " reason", "default": ""}
             },
             "required": ["id", "phase"]
         },
         "handler": lambda args: run_seed(["transition", args["id"], args["phase"]] + ([args.get("reason")] if args.get("reason") else []))
     },
     "t9_relate": {
-        "description": "두 엔티티 간 관계 생성.",
+        "description": "    create.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "id1": {"type": "string", "description": "소스 엔티티 ID"},
-                "id2": {"type": "string", "description": "타겟 엔티티 ID"}
+                "id1": {"type": "string", "description": "  ID"},
+                "id2": {"type": "string", "description": "  ID"}
             },
             "required": ["id1", "id2"]
         },
         "handler": lambda args: run_seed(["relate", args["id1"], args["id2"]])
     },
     "t9_reindex": {
-        "description": "MD 파일 → DB 동기화.",
+        "description": "MD file → DB sync.",
         "inputSchema": {"type": "object", "properties": {}},
         "handler": lambda args: run_seed(["reindex"])
     },
 }
 
 def handle_jsonrpc(request: dict) -> dict:
-    """JSON-RPC 요청 처리."""
+    """JSON-RPC request process."""
     method = request.get("method", "")
     params = request.get("params", {})
     req_id = request.get("id")
@@ -147,7 +147,7 @@ def handle_jsonrpc(request: dict) -> dict:
         return None  # ignore unknown methods
 
 def main():
-    """stdio JSON-RPC 서버 메인 루프."""
+    """stdio JSON-RPC ."""
     for line in sys.stdin:
         line = line.strip()
         if not line:

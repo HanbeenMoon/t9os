@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""t9_auto.py — T9 OS 자동 개체화 엔진.
-Gemini Flash를 중간관리자로 쓴다. 판단은 코드, NLP만 Gemini.
-cron으로 6시간마다 실행 또는 t9tb에서 /auto로 호출."""
+"""t9_auto.py — T9 OS auto Individuating engine.
+Gemini Flash. , NLPGemini.
+cron6execution t9tb/autocall."""
 import sqlite3, json, urllib.request, urllib.parse, re, sys, time
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -16,20 +16,20 @@ from tg_common import tg_send
 MODEL = "gemini-3-flash-preview"
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={GEMINI_KEY}"
 
-# T9 OS 프로젝트 목록 (코드로 고정 — Gemini한테 이것만 알려줌)
+# T9 OS project list (— Gemini)
 PROJECTS = ["T9", "ODNAR", "SSK", "SC41", "AT1", "T9D", "t9tb", "PM3", "L2U"]
 
-# 마감/긴급 키워드 (하드 규칙)
-URGENT_KEYWORDS = ["마감", "deadline", "급함", "긴급", "D-", "오늘까지", "내일까지", "ASAP", "즉시"]
+# deadline/urgent key(rule)
+URGENT_KEYWORDS = ["deadline", "deadline", "", "urgent", "D-", "", "Tomorrow", "ASAP", ""]
 DEADLINE_PATTERN = re.compile(r'(\d{4})-(\d{2})-(\d{2})')
 
 
-# ─── Gemini 호출 (단순 NLP만) ───
+# ─── Gemini call ( NLP) ────────────────────────────────────────
 
 def gemini_call(prompt, max_tokens=200):
-    """Gemini Flash 단일 호출. 실패하면 None."""
+    """Gemini Flash call. failedNone."""
     if not GEMINI_KEY:
-        print("  [gemini 실패] GEMINI_API_KEY 환경변수 없음")
+        print("  [gemini failed] GEMINI_API_KEY env var not found")
         return None
     body = json.dumps({
         "contents": [{"parts": [{"text": prompt}]}],
@@ -45,25 +45,25 @@ def gemini_call(prompt, max_tokens=200):
         data = json.loads(resp.read())
         candidates = data.get("candidates", [])
         if not candidates:
-            print(f"  [gemini] 빈 응답")
+            print(f"  [gemini] response")
             return None
         content = candidates[0].get("content", {})
         parts = content.get("parts", [])
         for part in parts:
             if "text" in part:
                 return part["text"].strip()
-        print(f"  [gemini] text 없음: {list(content.keys())}")
+        print(f"  [gemini] text not found: {list(content.keys())}")
         return None
     except Exception as e:
-        print(f"  [gemini 실패] {e}")
+        print(f"  [gemini failed] {e}")
         return None
 
 
 def gemini_batch(items, prompt_fn, max_tokens=150):
-    """여러 항목을 하나의 프롬프트로 묶어서 처리. Batch API 대신 단일 호출로 묶기."""
+    """itemprocess. Batch API call."""
     if not items:
         return {}
-    # 최대 20개씩 묶기
+    # max 20
     results = {}
     for i in range(0, len(items), 20):
         chunk = items[i:i + 20]
@@ -79,24 +79,24 @@ def gemini_batch(items, prompt_fn, max_tokens=150):
                 elif isinstance(parsed, dict):
                     results.update(parsed)
             except json.JSONDecodeError:
-                # 줄 단위 파싱 시도
+                #
                 lines = [l.strip() for l in raw.split("\n") if l.strip()]
                 for idx, item in enumerate(chunk):
                     if idx < len(lines):
                         results[item["id"]] = lines[idx]
         if i + 20 < len(items):
-            time.sleep(1)  # rate limit 방지
+            time.sleep(1)  # rate limit
     return results
 
 
-# ─── 하드 규칙 (코드) ───
+# ─── rule () ────────────────────────────────────────
 
 def detect_urgency_hard(text, filename):
-    """규칙 기반 urgency 판별"""
+    """rule urgency """
     combined = f"{filename} {text}".lower()
     if any(k.lower() in combined for k in URGENT_KEYWORDS):
         return "high"
-    # 마감일이 7일 이내면 high
+    # deadline7high
     dates = DEADLINE_PATTERN.findall(combined)
     today = datetime.now().date()
     for y, m, d in dates:
@@ -113,7 +113,7 @@ def detect_urgency_hard(text, filename):
 
 
 def detect_project_hard(text, filename):
-    """규칙 기반 프로젝트 매칭"""
+    """rule project """
     combined = f"{filename} {text}".upper()
     for proj in PROJECTS:
         if proj.upper() in combined:
@@ -121,14 +121,14 @@ def detect_project_hard(text, filename):
     return ""
 
 
-# should_archive 제거됨 — G2-B 존재론 감시단 VIOLATION
-# 전개체의 자동 sediment/archive는 L2 위반. 한빈 수동 검토(consolidate)에서만 처리.
+# should_archive remove— G2-B guardian VIOLATION
+# Preindividualauto sediment/archiveL2 violation. manual (consolidate)process.
 
 
-# ─── Gemini 소프트 작업 ───
+# ─── Gemini  task ────────────────────────────────────────
 
 def extract_concepts_batch(entities):
-    """Gemini로 concepts 추출 (배치)"""
+    """Geminiconcepts extract ()"""
     def prompt_fn(chunk):
         items = []
         for e in chunk:
@@ -136,16 +136,16 @@ def extract_concepts_batch(entities):
             items.append(f'{e["id"]}: {preview}')
         joined = "\n".join(items)
         return (
-            f"각 항목에서 핵심 개념을 2-4개 추출해. JSON 배열로만 답해.\n"
-            f"형식: [{{\"id\": N, \"concepts\": [\"개념1\", \"개념2\"]}}, ...]\n"
-            f"개념은 한국어, 짧게 (2-4단어).\n\n{joined}"
+            f" item   2-4 extract. JSON  .\n"
+            f"format: [{{\"id\": N, \"concepts\": [\"1\", \"2\"]}}, ...]\n"
+            f" ,  (2-4).\n\n{joined}"
         )
     raw = gemini_call(prompt_fn(entities), max_tokens=100 * len(entities))
     if not raw:
         return {}
     results = {}
     try:
-        # JSON 부분만 추출
+        # JSON partialextract
         json_match = re.search(r'\[.*\]', raw, re.DOTALL)
         if json_match:
             parsed = json.loads(json_match.group())
@@ -158,7 +158,7 @@ def extract_concepts_batch(entities):
 
 
 def classify_project_batch(entities):
-    """Gemini로 프로젝트 분류 (배치)"""
+    """Geminiproject classify ()"""
     def prompt_fn(chunk):
         items = []
         for e in chunk:
@@ -166,9 +166,9 @@ def classify_project_batch(entities):
             items.append(f'{e["id"]}: {preview}')
         joined = "\n".join(items)
         return (
-            f"각 항목이 어떤 프로젝트에 해당하는지 분류해. 프로젝트 목록: {', '.join(PROJECTS)}\n"
-            f"해당 없으면 \"none\". JSON 배열로만 답해.\n"
-            f"형식: [{{\"id\": N, \"project\": \"프로젝트명\"}}, ...]\n\n{joined}"
+            f" item  project  classify. project list: {', '.join(PROJECTS)}\n"
+            f"  \"none\". JSON  .\n"
+            f"format: [{{\"id\": N, \"project\": \"project\"}}, ...]\n\n{joined}"
         )
     raw = gemini_call(prompt_fn(entities), max_tokens=50 * len(entities))
     if not raw:
@@ -188,7 +188,7 @@ def classify_project_batch(entities):
     return results
 
 
-# ─── 메인 오케스트레이터 ───
+# ──────────────────────────────────────────────────
 
 def get_db():
     conn = sqlite3.connect(str(DB_PATH), timeout=5)
@@ -197,12 +197,12 @@ def get_db():
 
 
 def run_auto(dry_run=False):
-    """메인 자동화 루프"""
+    """auto"""
     conn = get_db()
     now = datetime.now()
     report = {"concepts_added": 0, "urgency_set": 0, "transitioned": 0, "projects_set": 0}
 
-    # ── 1. 미분류 preindividual 수집 ──
+    # ─── 1. classify preindividual ────────────────────────────────────────
     unclassified = conn.execute(
         "SELECT id, filename, filepath, body_preview, created_at, updated_at, "
         "concepts, urgency, metadata, phase "
@@ -213,9 +213,9 @@ def run_auto(dry_run=False):
     unclassified = [dict(r) for r in unclassified]
 
     print(f"\n=== t9_auto — {now:%Y-%m-%d %H:%M} ===")
-    print(f"  미분류 preindividual: {len(unclassified)}건")
+    print(f"  classify preindividual: {len(unclassified)}items")
 
-    # ── 2. 하드 규칙 먼저 적용 ──
+    # ─── 2.  rule  applied ────────────────────────────────────────
     hard_updates = []
     for e in unclassified:
         updates = {}
@@ -227,7 +227,7 @@ def run_auto(dry_run=False):
             if urg:
                 updates["urgency"] = urg
 
-        # project (metadata에 저장)
+        # project (metadatasave)
         proj = detect_project_hard(text, e["filename"])
         if proj:
             updates["project"] = proj
@@ -235,44 +235,44 @@ def run_auto(dry_run=False):
         if updates:
             hard_updates.append((e["id"], updates))
 
-    print(f"  하드 규칙 매칭: {len(hard_updates)}건")
+    print(f"  rule : {len(hard_updates)}items")
 
-    # ── 3. Gemini 소프트 작업 (concepts 추출) ──
+    # ─── 3. Gemini  task (concepts extract) ────────────────────────────────────────
     needs_concepts = [e for e in unclassified if not e.get("concepts") or e["concepts"] in ("", "[]")]
     gemini_concepts = {}
     if needs_concepts:
-        print(f"  Gemini concepts 요청: {len(needs_concepts)}건...")
-        gemini_concepts = extract_concepts_batch(needs_concepts[:20])  # 최대 20개
-        print(f"  Gemini concepts 결과: {len(gemini_concepts)}건")
+        print(f"  Gemini concepts request: {len(needs_concepts)}items...")
+        gemini_concepts = extract_concepts_batch(needs_concepts[:20])  # max 20
+        print(f"  Gemini concepts result: {len(gemini_concepts)}items")
 
-    # ── 4. Gemini 프로젝트 분류 (하드 규칙으로 못 잡은 것만) ──
+    # ─── 4. Gemini project classify ( rule   ) ────────────────────────────────────────
     hard_project_ids = {eid for eid, u in hard_updates if "project" in u}
     needs_project = [e for e in unclassified[:20] if e["id"] not in hard_project_ids]
     gemini_projects = {}
     if needs_project:
-        print(f"  Gemini 프로젝트 분류 요청: {len(needs_project)}건...")
+        print(f"  Gemini project classify request: {len(needs_project)}items...")
         gemini_projects = classify_project_batch(needs_project)
-        print(f"  Gemini 프로젝트 분류 결과: {len(gemini_projects)}건")
+        print(f"  Gemini project classify result: {len(gemini_projects)}items")
 
-    # ── 5. DB 업데이트 ──
+    # ─── 5. DB ────────────────────────────────────────
     if not dry_run:
         cursor = conn.cursor()
 
-        # 하드 규칙 적용
+        # rule applied
         for eid, updates in hard_updates:
             if "urgency" in updates:
                 cursor.execute("UPDATE entities SET urgency=?, updated_at=? WHERE id=?",
                                (updates["urgency"], now.isoformat(), eid))
                 report["urgency_set"] += 1
 
-        # Gemini concepts 적용
+        # Gemini concepts applied
         for eid, concepts in gemini_concepts.items():
             if isinstance(concepts, list) and concepts:
                 cursor.execute("UPDATE entities SET concepts=?, updated_at=? WHERE id=?",
                                (json.dumps(concepts, ensure_ascii=False), now.isoformat(), eid))
                 report["concepts_added"] += 1
 
-        # Gemini 프로젝트 적용 (metadata에 추가)
+        # Gemini project applied (metadataadd)
         for eid, proj in gemini_projects.items():
             row = cursor.execute("SELECT metadata FROM entities WHERE id=?", (eid,)).fetchone()
             try:
@@ -284,7 +284,7 @@ def run_auto(dry_run=False):
                            (json.dumps(meta, ensure_ascii=False), now.isoformat(), eid))
             report["projects_set"] += 1
 
-        # 하드 규칙 프로젝트도 metadata에
+        # rule projectmetadata
         for eid, updates in hard_updates:
             if "project" in updates:
                 row = cursor.execute("SELECT metadata FROM entities WHERE id=?", (eid,)).fetchone()
@@ -297,7 +297,7 @@ def run_auto(dry_run=False):
                                (json.dumps(meta, ensure_ascii=False), now.isoformat(), eid))
                 report["projects_set"] += 1
 
-        # urgency=high → tension_detected 자동 전이
+        # urgency=high → tension_detected auto
         high_pre = cursor.execute(
             "SELECT id FROM entities WHERE phase='preindividual' AND urgency='high'"
         ).fetchall()
@@ -315,9 +315,9 @@ def run_auto(dry_run=False):
 
     conn.close()
 
-    # ── 6. 보고 ──
+    # ── 6. report ──
     summary = (
-        f"t9_auto 완료 — {now:%m/%d %H:%M}\n"
+        f"t9_auto completed — {now:%m/%d %H:%M}\n"
         f"concepts: +{report['concepts_added']}\n"
         f"urgency: +{report['urgency_set']}\n"
         f"project: +{report['projects_set']}\n"

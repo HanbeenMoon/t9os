@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# T9 OS 범용 cron runner — 모든 파이프라인의 단일 진입점.
-# config.py가 env 파일을 직접 파싱하므로 source는 백업용.
+# T9 OS cron runner — pipelinesingle entry point.
+# config.pyenv filesourcebackup.
 #
 # Usage:
-#   cron_runner.sh <파이프라인명>
+# cron_runner.sh <pipeline>
 #   cron_runner.sh deadline_notify
 #   cron_runner.sh ceo_brief
 #   cron_runner.sh t9_auto
@@ -19,7 +19,7 @@ T9="${HANBEEN}/T9OS"
 PIPES="${T9}/pipes"
 LOG_DIR="${HANBEEN}/_ai/logs/cc"
 
-# 환경변수 로드 (백업 — config.py가 이미 파일에서 읽지만 os.environ도 채워줌)
+# env var (backup — config.pyfileos.environ)
 [ -f "${HANBEEN}/_keys/.env.sh" ] && source "${HANBEEN}/_keys/.env.sh"
 
 MODE="${1:-help}"
@@ -42,21 +42,21 @@ case "$MODE" in
         python3 "${PIPES}/sc41_cron.py" >> "${LOG_DIR}/sc41_cron.log" 2>&1
         ;;
     tidy)
-        # tidy = 주간 정비 (일/수 10:00)
-        # 1. 기존 tidy (inbox→active/archived 정리)
+        # tidy = (/10:00)
+        # 1. existing tidy (inbox→active/archived clean up)
         python3 "${T9}/t9_seed.py" tidy >> "${LOG_DIR}/tidy_cron.log" 2>&1
-        # 2. 고아 엔티티 자동 정리
+        # 2. auto clean up
         python3 "${T9}/t9_seed.py" orphans --fix >> "${LOG_DIR}/tidy_cron.log" 2>&1
-        # 3. 아카이브→메모리 통합
+        # 3. archive→Integrate
         python3 "${T9}/t9_seed.py" consolidate >> "${LOG_DIR}/tidy_cron.log" 2>&1
-        # 4. FTS5 인덱스 재구축 (검색 정합성 유지)
+        # 4. FTS5 index (search consistency )
         python3 "${T9}/t9_seed.py" rebuild-fts >> "${LOG_DIR}/tidy_cron.log" 2>&1
         ;;
     healthcheck|health)
         python3 "${PIPES}/healthcheck.py" --tg >> "${LOG_DIR}/healthcheck_cron.log" 2>&1
         ;;
     db_sync)
-        # WSL 네이티브 DB → NTFS 복사 (Syncthing 동기화용)
+        # WSL DB → NTFS copy (Syncthing sync)
         WSL_DB="/home/winn/.t9os_data/.t9.db"
         NTFS_DB="${T9}/.t9.db.sync"
         if [ -f "$WSL_DB" ]; then

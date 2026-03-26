@@ -6,7 +6,7 @@ Two backends available:
   2. Claude API           -- set ANTHROPIC_API_KEY to enable
 
 The regex parser handles common Korean & English patterns:
-  "내일까지 보고서 제출"       -> add(title="보고서 제출", due=tomorrow)
+  "Tomorrow report "       -> add(title="report ", due=tomorrow)
   "add report by Friday"     -> add(title="report", due=friday)
   "complete #3"              -> complete(task_id=3)
   "show tasks"               -> list()
@@ -57,8 +57,8 @@ class ParseResult:
 # ---------------------------------------------------------------------------
 
 _KO_RELATIVE: dict[str, int] = {
-    "오늘": 0, "내일": 1, "모레": 2, "글피": 3,
-    "이번주": 0, "다음주": 7,
+    "": 0, "Tomorrow": 1, "": 2, "": 3,
+    "": 0, "next": 7,
 }
 
 _EN_RELATIVE: dict[str, int] = {
@@ -76,7 +76,7 @@ def _resolve_date(text: str) -> date | None:
     lower = text.lower().strip()
     today = date.today()
 
-    # Korean relative dates: 내일까지, 모레까지, etc.
+    # Korean relative dates: Tomorrow, , etc.
     for token, delta in _KO_RELATIVE.items():
         if token in text:
             return today + timedelta(days=delta)
@@ -116,11 +116,11 @@ def _resolve_date(text: str) -> date | None:
 def _resolve_priority(text: str) -> Priority:
     """Detect priority keywords."""
     lower = text.lower()
-    if any(k in lower for k in ("urgent", "긴급", "asap", "급한")):
+    if any(k in lower for k in ("urgent", "urgent", "asap", "")):
         return Priority.URGENT
-    if any(k in lower for k in ("high", "높은", "중요")):
+    if any(k in lower for k in ("high", "", "")):
         return Priority.HIGH
-    if any(k in lower for k in ("low", "낮은", "나중")):
+    if any(k in lower for k in ("low", "", "")):
         return Priority.LOW
     return Priority.MEDIUM
 
@@ -132,43 +132,43 @@ def _resolve_priority(text: str) -> Priority:
 # Patterns grouped by intent
 
 _ADD_PATTERNS: list[re.Pattern[str]] = [
-    # Korean: "내일까지 보고서 제출", "보고서 제출 추가"
-    re.compile(r"(?:추가|등록|만들어|생성|할일)\s*[:：]?\s*(.+)", re.IGNORECASE),
-    re.compile(r"(.+?)\s*(?:추가|등록|해줘|해 줘|만들어)", re.IGNORECASE),
-    # Korean: sentences ending with ~까지 imply a task
-    re.compile(r"(.+까지\s+.+)"),
+    # Korean: "Tomorrowreport", "reportadd"
+    re.compile(r"(?:add|register||create|)\s*[:：]?\s*(.+)", re.IGNORECASE),
+    re.compile(r"(.+?)\s*(?:add|register|| |)", re.IGNORECASE),
+    # Korean: sentences ending with ~imply a task
+    re.compile(r"(.+\s+.+)"),
     # English: "add ...", "create ...", "new task ..."
     re.compile(r"(?:add|create|new task|remind me to)\s+(.+)", re.IGNORECASE),
 ]
 
 _COMPLETE_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(r"(?:완료|끝|done|complete|finish)\s*#?(\d+)", re.IGNORECASE),
-    re.compile(r"#(\d+)\s*(?:완료|끝|done|complete)", re.IGNORECASE),
+    re.compile(r"(?:completed||done|complete|finish)\s*#?(\d+)", re.IGNORECASE),
+    re.compile(r"# (\d+)\s*(?:completed||done|complete)", re.IGNORECASE),
 ]
 
 _LIST_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(r"(?:목록|리스트|보여|조회|show|list|tasks|할일)", re.IGNORECASE),
+    re.compile(r"(?:list|||query|show|list|tasks|)", re.IGNORECASE),
 ]
 
 _SUMMARY_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(r"(?:요약|summary|daily|오늘|브리핑|briefing|digest)", re.IGNORECASE),
+    re.compile(r"(?:summary|summary|daily|||briefing|digest)", re.IGNORECASE),
 ]
 
 _HELP_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(r"(?:help|도움|사용법|명령어|/help|/start)", re.IGNORECASE),
+    re.compile(r"(?:help||use|command|/help|/start)", re.IGNORECASE),
 ]
 
 
 def _clean_title(raw: str) -> str:
     """Strip date/priority noise from the extracted title."""
     title = raw.strip()
-    # Remove trailing particles: 까지, by Friday, etc.
-    title = re.sub(r"\s*(?:까지|by\s+\S+)\s*$", "", title, flags=re.IGNORECASE)
+    # Remove trailing particles: , by Friday, etc.
+    title = re.sub(r"\s*(?:|by\s+\S+)\s*$", "", title, flags=re.IGNORECASE)
     # Remove leading date tokens that leaked in
     for token in list(_KO_RELATIVE.keys()) + list(_EN_RELATIVE.keys()):
         title = re.sub(rf"^{re.escape(token)}\s*", "", title, flags=re.IGNORECASE)
     # Remove priority keywords
-    for kw in ("urgent", "긴급", "high", "중요", "low", "낮은"):
+    for kw in ("urgent", "urgent", "high", "", "low", ""):
         title = re.sub(rf"\b{re.escape(kw)}\b", "", title, flags=re.IGNORECASE)
     return title.strip(" ,.:;!") or raw.strip()
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""T9 OS v1→v2 마이그레이션 검증 스크립트.
-매 Phase 완료 후 실행하여 데이터 무결성 확인."""
+"""T9 OS v1→v2 verification script.
+Phase completed executionintegrity check."""
 
 import sqlite3
 import sys
@@ -10,13 +10,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from lib.config import DB_PATH
 SNAPSHOT_PATH = os.path.join(os.path.dirname(__file__), '..', '.t9_snapshot.json')
 
-# 동적 스냅샷: 파일에서 로드하거나 기본값 사용
+# snapshot: filedefaultvalue use
 def load_snapshot():
     if os.path.exists(SNAPSHOT_PATH):
         import json
         with open(SNAPSHOT_PATH) as f:
             return json.load(f)
-    # 폴백: v1 초기 스냅샷 (2026-03-20)
+    # : v1 snapshot (2026-03-20)
     return {
         'total_entities': 531,
         'transitions': 231,
@@ -27,7 +27,7 @@ def load_snapshot():
     }
 
 def save_snapshot():
-    """현재 상태를 스냅샷으로 저장."""
+    """current statesnapshotsave."""
     import json
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()

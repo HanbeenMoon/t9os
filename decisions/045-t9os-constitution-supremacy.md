@@ -1,12 +1,10 @@
-# ADR-045: T9 OS 헌법 최상위 우선 원칙 — cc 자체 판단 금지
+# ADR-045: Constitution Supremacy
 
-- 날짜: 2026-03-16
-- 상태: 채택됨
-- 결정: T9 OS 헌법(L1/L2/L3)이 cc의 모든 행동의 최상위 규칙이다. cc 자체 판단보다 L1/L2 규칙이 항상 우선한다. "내 판단에는..." 식의 독자적 의사결정은 L1/L2에 명시되지 않은 영역에서만 허용한다. 위반 시 세션 간 일관성이 깨진다.
-- 이유: cc가 세션마다 다른 판단을 내리면 T9 OS의 일관성이 파괴됨. 특히 project-alpha 비전 왜곡 사례에서 AI가 독자적으로 "메모앱"으로 프레이밍한 것이 CATASTROPHIC 판정을 받음.
-- 대안: cc 자율 판단 허용 (일관성 상실), 매번 설계자 승인 (비효율)
-- 결과: CLAUDE.md 섹션 0 "대전제"로 명시, L1 위반 불가 규칙, L3 개정 절차(설계자 승인 필수)
-- 출처: 20260316_CC_003_041500_T9OS_v02_시몽동개정_model-project_project-alpha.txt, memory/feedback_t9os_supremacy.md
+- Date: 2026-03-16
+- Status: Accepted
+- Decision: The T9 OS constitution (L1/L2/L3) is the supreme rule for all agent behavior. Agent self-judgment never overrides documented rules. Independent decisions are allowed only in areas not covered by L1/L2.
+- Rationale: Without constitutional supremacy, each session develops its own interpretation, destroying cross-session consistency.
+- Outcome: L1 preamble, guardian G3 enforcement
 
 ## Simondon Mapping
-모듈레이션(modulation)의 경계 설정: 자기 형태 재조형이 허용되지만, 헌법이라는 불변 구조가 변형의 범위를 제한하여 시스템 동일성을 보존.
+The constitution is the persistent structure that conditions all individuation — agents operate within its field, not outside it.

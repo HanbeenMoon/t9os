@@ -1,25 +1,10 @@
-# ADR-009: 전개체 inbox 패턴
+# ADR-009: Preindividual Inbox Pattern
 
-- 날짜: 2026-03-15
-- 상태: 채택됨
-- 결정: 아직 작업으로 확정되지 않은 모든 입력(욕구, 긴장, 감정, 메모, 스크랩, 이미지, 음성, 링크)을 `T9OS/field/inbox/`에 전개체(preindividual)로 저장한다. 방향성이 감지된 것은 `field/impulses/`로 분리한다.
-- 이유:
-  - 시몽동 철학의 핵심: "기록은 무덤이 아니라 장(Field) -- 완성된 정보가 아니라 잠재성의 저장소." 입력을 즉시 분류하면 잠재성을 죽인다.
-  - 설계자의 입력 패턴: 카톡 나에게보내기, 음성 메모, 영감 등 형태가 다양하고 즉시 분류 불가능한 경우가 대부분이다.
-  - 전개체는 여러 프로젝트에 걸칠 수 있다. 프로젝트별 폴더 분류는 시몽동 위반이다 (L2 전개체 정리 프로토콜).
-  - "저장만 하지 마라" 원칙: inbox에 넣은 후 반드시 읽고 이해하고 행동해야 한다. 마감일이면 urgency 반영, 프로젝트 연관이면 relate, 즉시 할 것이면 직접 실행.
-  - triage 프로토콜: 50건 이상 쌓이면 3단계(스캔 30초/건 -> 긴장 감지 -> 산출물 연결)로 정리한다.
-- 대안:
-  - **프로젝트별 inbox**: 프로젝트 경계를 넘는 입력을 처리할 수 없음, 시몽동 위반 — 폐기.
-  - **즉시 분류**: 분류 자체가 메타 작업, 잠재성 소멸 — 폐기.
-  - **Notion inbox**: Notion API 의존 제거 원칙에 위배 — 폐기.
-  - **이메일/메신저 기반 inbox**: 검색성 부족, DB 연동 어려움 — 불채택.
-- 결과:
-  - `t9_seed.py capture/idea` 명령으로 전개체 저장. 자동으로 concepts(키워드 추출), urgency(긴급도 감지), tension(이접 감지) 메타데이터를 부여한다.
-  - `pipes/t9_auto.py`가 Gemini Flash로 전개체 자동 분류를 보조한다.
-  - `cmd_ingest()`로 카톡/메모 원본 파일을 파싱하여 핵심 아이디어를 개별 전개체로 등록한다.
-  - 현재 274건+ 전개체가 축적되어 있다.
-  - 모든 전개체를 반드시 개체화할 필요 없다. "전개체로 남는 것이 정상."
+- Date: 2026-03-15
+- Status: Accepted
+- Decision: All unconfirmed input (desires, tensions, emotions, notes, scraps, images, voice, links) is stored in `field/inbox/` as preindividual. Input with detected directionality goes to `field/impulses/`.
+- Rationale: Simondon's core insight — "records are not tombs but fields, not finished information but reservoirs of potential." Immediate classification kills potential.
+- Outcome: `field/inbox/` as universal entry point, `t9_seed.py capture` as capture command
 
 ## Simondon Mapping
-이 결정이 시몽동의 어떤 원리를 구현하는가: 전개체(preindividual) — 아직 분화되지 않은 잠재성을 분류하지 않고 보존하여 개체화의 원료로 유지한다.
+Preindividual field — the inbox is a supersaturated solution holding undifferentiated potential, resisting premature individuation.

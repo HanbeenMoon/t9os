@@ -1,4 +1,4 @@
-"""T9 OS 파일 파서 유틸리티 — t9_seed.py에서 분리"""
+"""T9 OS file — t9_seed.py"""
 import re, json
 from pathlib import Path
 

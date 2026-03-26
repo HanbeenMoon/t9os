@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-세션 복구 파이프라인 — 미변환 JSONL → 브리프 일괄 생성
-session-end 훅이 안 탄 세션들 전부 복구.
+session recover pipeline — convert JSONL → brief create
+session-end sessionrecover.
 
 Usage:
-  python3 T9OS/pipes/session_recover.py              # 미변환 전부 처리
-  python3 T9OS/pipes/session_recover.py --dry-run     # 목록만 출력
-  python3 T9OS/pipes/session_recover.py --single ID   # 특정 세션만
+  python3 T9OS/pipes/session_recover.py              # convert process
+  python3 T9OS/pipes/session_recover.py --dry-run     # listoutput
+  python3 T9OS/pipes/session_recover.py --single ID   # session
 """
 
 import json
@@ -16,7 +16,7 @@ import glob
 from pathlib import Path
 from datetime import datetime
 
-# 경로
+# path
 HOME = Path.home()
 PROJECT_DIR = Path("/mnt/c/Users/winn/HANBEEN")
 JSONL_DIR = HOME / ".claude/projects/-mnt-c-Users-winn-HANBEEN"
@@ -26,16 +26,16 @@ BRIEF_DIR = PROJECT_DIR / ".claude/session-briefs"
 CONV_DIR.mkdir(parents=True, exist_ok=True)
 BRIEF_DIR.mkdir(parents=True, exist_ok=True)
 
-# 교정/결정 감지 키워드
-CORRECTION_KW = ['아니', '아닌데', '틀려', '그게아니라', '왜 안', '하지마', '금지', '절대', '접는', '안해', '안 해', '그거아니고', '아니야', '하지 마']
-DECISION_KW = ['ㅇㅋ', '좋아', '그렇게', '하자', '해줘', '오케이', 'ㅇㅇ', '접는', '고고', '진행', '승인', '해', 'ㄱㄱ']
+# /key
+CORRECTION_KW = ['', '', '', '', ' ', '', '', '', '', '', ' ', '', '', ' ']
+DECISION_KW = ['ㅇㅋ', '', '', '', '', '', 'ㅇㅇ', '', '', '', 'approval', '', 'ㄱㄱ']
 
 
 def get_converted_ids():
-    """이미 변환된 세션 ID 집합"""
+    """convertsession ID """
     ids = set()
     for md in CONV_DIR.glob("*.md"):
-        # 파일명: 20260321_abcd1234.md
+        # file: 20260321_abcd1234.md
         parts = md.stem.split("_", 1)
         if len(parts) == 2:
             ids.add(parts[1])
@@ -43,7 +43,7 @@ def get_converted_ids():
 
 
 def find_unconverted(min_size=10000):
-    """미변환 JSONL 찾기"""
+    """convert JSONL """
     converted = get_converted_ids()
     unconverted = []
 
@@ -69,7 +69,7 @@ def find_unconverted(min_size=10000):
 
 
 def extract_brief(jsonl_path, session_id, date_str=None):
-    """JSONL에서 대화 MD + 브리프 생성"""
+    """JSONLconversation MD + brief create"""
     if date_str is None:
         mtime = datetime.fromtimestamp(jsonl_path.stat().st_mtime)
         date_str = mtime.strftime("%Y%m%d")
@@ -106,7 +106,7 @@ def extract_brief(jsonl_path, session_id, date_str=None):
                             content += part + '\n'
 
                 if content.strip() and role in ('user', 'assistant', 'human'):
-                    # MD에는 최대 2000자까지
+                    # MDmax 2000
                     conv.write(f"## [{role}]\n{content.strip()[:2000]}\n\n")
 
                     if role in ('user', 'human'):
@@ -124,30 +124,30 @@ def extract_brief(jsonl_path, session_id, date_str=None):
             except Exception:
                 continue
 
-    # 브리프 생성
+    # brief create
     with open(brief_file, 'w', encoding='utf-8') as brief:
         brief.write(f"# Session Brief — {timestamp} (auto-recovered)\n\n")
-        brief.write(f"## 한빈 발언 {len(user_msgs)}개\n\n")
+        brief.write(f"## {len(user_msgs)}\n\n")
 
-        brief.write(f"## 교정/피드백 {len(corrections)}건\n")
+        brief.write(f"## /{len(corrections)}items\n")
         for c in corrections[-10:]:
             brief.write(f"- {c}\n")
 
-        brief.write(f"\n## 주요 결정 {len(decisions)}건\n")
+        brief.write(f"\n## {len(decisions)}items\n")
         for d in decisions[-10:]:
             brief.write(f"- {d}\n")
 
-        # 톤 분석
-        brief.write(f"\n## 세션 톤\n")
-        angry = sum(1 for m in user_msgs for w in ['시발', '씹', '병신', '지랄', '아오', 'ㅅㅂ'] if w in m)
-        positive = sum(1 for m in user_msgs for w in ['좋아', '대박', '오', 'ㅋㅋ', '완벽', '굿'] if w in m)
+        # analyze
+        brief.write(f"\n## session \n")
+        angry = sum(1 for m in user_msgs for w in ['', '', '', '', '', 'ㅅㅂ'] if w in m)
+        positive = sum(1 for m in user_msgs for w in ['', '', '', 'ㅋㅋ', '', ''] if w in m)
         if angry > positive:
-            brief.write("- 톤: 직설적/불만\n")
+            brief.write("- : /\n")
         elif positive > angry:
-            brief.write("- 톤: 긍정적/만족\n")
+            brief.write("- : /\n")
         else:
-            brief.write("- 톤: 중립적/업무적\n")
-        brief.write(f"- 욕설: {angry}회, 긍정: {positive}회\n")
+            brief.write("- : /\n")
+        brief.write(f"- : {angry}, : {positive}\n")
 
     return {
         'conv': str(conv_file),
@@ -171,7 +171,7 @@ def main():
     if single:
         unconverted = [u for u in unconverted if u['id'] == single or u['full_id'].startswith(single)]
 
-    print(f"[세션 복구] 미변환 JSONL: {len(unconverted)}개")
+    print(f"[session recover] convert JSONL: {len(unconverted)}")
 
     if dry_run:
         for u in unconverted:
@@ -191,13 +191,13 @@ def main():
             total_user += result['user_msgs']
             total_corrections += result['corrections']
             total_decisions += result['decisions']
-            print(f"  [OK] {u['id']} — 한빈 {result['user_msgs']}발언, 교정 {result['corrections']}, 결정 {result['decisions']}")
+            print(f"  [OK] {u['id']} — {result['user_msgs']}, {result['corrections']}, {result['decisions']}")
         except Exception as e:
             fail += 1
             print(f"  [FAIL] {u['id']} — {e}")
 
-    print(f"\n[결과] 성공 {ok}, 실패 {fail}")
-    print(f"[총계] 한빈 발언 {total_user}개, 교정 {total_corrections}건, 결정 {total_decisions}건 복구")
+    print(f"\n[result] success {ok}, failed {fail}")
+    print(f"[] {total_user}, {total_corrections}items, {total_decisions}items recover")
 
 
 if __name__ == '__main__':

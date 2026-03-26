@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-세션 JSONL 실시간 읽기 — 세션 종료 안 해도 다른 세션이 접근 가능.
+session JSONL — session end sessionaccess .
 
 Usage:
-  python3 T9OS/pipes/session_live_read.py                    # 모든 세션 요약
-  python3 T9OS/pipes/session_live_read.py --session 636a72df  # 특정 세션
-  python3 T9OS/pipes/session_live_read.py --search "AT1"      # 키워드 검색
-  python3 T9OS/pipes/session_live_read.py --recent 5          # 최근 N개 세션
-  python3 T9OS/pipes/session_live_read.py --sync              # 전체 conversations/ 동기화
+  python3 T9OS/pipes/session_live_read.py                    # session summary
+  python3 T9OS/pipes/session_live_read.py --session 636a72df  # session
+  python3 T9OS/pipes/session_live_read.py --search "AT1"      # keysearch
+  python3 T9OS/pipes/session_live_read.py --recent 5          # Nsession
+  python3 T9OS/pipes/session_live_read.py --sync              # total conversations/ sync
 """
 
 import json, os, sys, glob, argparse
@@ -20,7 +20,7 @@ CONV_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def parse_jsonl(filepath):
-    """JSONL 파일에서 user/assistant 메시지 추출."""
+    """JSONL fileuser/assistant message extract."""
     msgs = []
     with open(filepath, "r", encoding="utf-8") as f:
         for line in f:
@@ -33,7 +33,7 @@ def parse_jsonl(filepath):
                 role = msg_type
                 is_external = d.get("userType") == "external" if role == "user" else True
                 if role == "user" and not is_external:
-                    continue  # tool results 등 skip
+                    continue  # tool results skip
 
                 content = d.get("message", {}).get("content", "")
                 if isinstance(content, list):
@@ -55,7 +55,7 @@ def parse_jsonl(filepath):
 
 
 def get_sessions(recent=None):
-    """모든 세션 JSONL 목록 반환."""
+    """session JSONL list return."""
     files = sorted(JSONL_DIR.glob("*.jsonl"), key=lambda f: f.stat().st_mtime, reverse=True)
     if recent:
         files = files[:recent]
@@ -69,7 +69,7 @@ def get_sessions(recent=None):
 
 
 def summarize_session(session):
-    """세션 요약 (user 발언 수, 첫/마지막 발언)."""
+    """session summary (user , /)."""
     msgs = parse_jsonl(session["path"])
     user_msgs = [m for m in msgs if m["role"] == "user"]
     return {
@@ -82,7 +82,7 @@ def summarize_session(session):
 
 
 def search_sessions(keyword, recent=50):
-    """키워드로 세션 검색 — JSONL 직접 검색."""
+    """keysession search — JSONL search."""
     sessions = get_sessions(recent=recent)
     results = []
     kw_lower = keyword.lower()
@@ -99,17 +99,17 @@ def search_sessions(keyword, recent=50):
 
 
 def sync_to_conversations():
-    """전체 JSONL → conversations/ MD 동기화 (세션 종료 안 해도)."""
+    """total JSONL → conversations/ MD sync (session end )."""
     sessions = get_sessions()
     synced = 0
     for s in sessions:
-        # 기존 MD가 있으면 크기 비교 — JSONL이 더 크면 재생성
+        # existing MDsize compare — JSONLcreate
         existing = list(CONV_DIR.glob(f"*_{s['sid']}.md"))
         if existing:
             md_size = existing[0].stat().st_size
             jsonl_size = s["path"].stat().st_size
-            # JSONL 대비 MD가 충분히 크면 skip (이미 변환됨)
-            if md_size > 500:  # 최소 크기 이상이면 이미 있다고 판단
+            # JSONL MDskip (convert)
+            if md_size > 500:  # min size
                 continue
 
         msgs = parse_jsonl(s["path"])
@@ -132,55 +132,55 @@ def sync_to_conversations():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="세션 JSONL 실시간 읽기")
-    parser.add_argument("--session", "-s", help="특정 세션 ID (앞 8자리)")
-    parser.add_argument("--search", help="키워드 검색")
-    parser.add_argument("--recent", "-n", type=int, default=10, help="최근 N개 세션")
-    parser.add_argument("--sync", action="store_true", help="conversations/ 전체 동기화")
-    parser.add_argument("--full", action="store_true", help="전체 대화 출력 (--session과 함께)")
+    parser = argparse.ArgumentParser(description="session JSONL  ")
+    parser.add_argument("--session", "-s", help=" session ID ( 8)")
+    parser.add_argument("--search", help="key search")
+    parser.add_argument("--recent", "-n", type=int, default=10, help=" N session")
+    parser.add_argument("--sync", action="store_true", help="conversations/ total sync")
+    parser.add_argument("--full", action="store_true", help="total conversation output (--session )")
     args = parser.parse_args()
 
     if args.sync:
         count = sync_to_conversations()
-        print(f"[live-sync] {count}개 세션 동기화 완료")
+        print(f"[live-sync] {count}session sync completed")
         return
 
     if args.search:
         results = search_sessions(args.search, recent=args.recent)
-        print(f"'{args.search}' 검색 결과: {len(results)}개 세션")
+        print(f"'{args.search}' search result: {len(results)}session")
         for r in results:
-            print(f"  {r['sid']}  {r['mtime'].strftime('%m/%d %H:%M')}  매칭={r['match_count']}건")
+            print(f"  {r['sid']}  {r['mtime'].strftime('%m/%d %H:%M')}  ={r['match_count']}items")
             print(f"    {r['sample'][:150]}")
         return
 
     if args.session:
-        # 특정 세션
+        # session
         matches = list(JSONL_DIR.glob(f"{args.session}*.jsonl"))
         if not matches:
-            print(f"세션 {args.session} 없음")
+            print(f"session {args.session} not found")
             return
         msgs = parse_jsonl(matches[0])
         user_msgs = [m for m in msgs if m["role"] == "user"]
-        print(f"세션 {args.session}: {len(user_msgs)}개 한빈 발언, {len(msgs)}개 총 메시지")
+        print(f"session {args.session}: {len(user_msgs)}, {len(msgs)}message")
         if args.full:
             for m in msgs:
-                prefix = "한빈" if m["role"] == "user" else "cc"
+                prefix = "" if m["role"] == "user" else "cc"
                 print(f"\n[{prefix}] {m['text'][:500]}")
         else:
-            print("\n한빈 발언:")
+            print("\n:")
             for i, m in enumerate(user_msgs):
                 print(f"  [{i}] {m['text'][:150]}")
         return
 
-    # 기본: 최근 세션 요약
+    # default: session summary
     sessions = get_sessions(recent=args.recent)
-    print(f"최근 {len(sessions)}개 세션:")
+    print(f"{len(sessions)}session:")
     for s in sessions:
         summary = summarize_session(s)
         print(f"  {s['sid']}  {s['mtime'].strftime('%m/%d %H:%M')}  {s['size_kb']}KB  "
-              f"한빈={summary['user_count']}발언")
+              f"={summary['user_count']}")
         if summary["first_msg"]:
-            print(f"    첫: {summary['first_msg'][:100]}")
+            print(f"    : {summary['first_msg'][:100]}")
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@
 T9 Unified Dashboard — Single HTML, Tab-based
 ==============================================
 Generates one dashboard.html with 5 tabs:
-  [상태] [타임라인] [긴장] [전도] [칸반]
+  [state] [Timeline] [Tension] [Transduction] [Kanban]
 
 Usage:
     python3 t9_viz.py              # Generate & open dashboard
@@ -35,9 +35,9 @@ OUT_PATH = BASE / "artifacts" / "dashboard.html"
 PHASE_ORDER = ["preindividual", "individuating", "stabilized",
                "tension_detected", "suspended", "archived"]
 PHASE_LABELS = {
-    "preindividual": "전개체", "individuating": "개체화중",
-    "stabilized": "안정", "tension_detected": "긴장감지",
-    "suspended": "중단", "archived": "아카이브",
+    "preindividual": "Preindividual", "individuating": "Individuating",
+    "stabilized": "Stabilized", "tension_detected": "Tension",
+    "suspended": "suspended", "archived": "archive",
 }
 PHASE_COLORS = {
     "preindividual": "#d29922", "individuating": "#58a6ff",
@@ -188,17 +188,17 @@ def build_html(entities, transitions, relates):
 
     def _urgent():
         if not urgent:
-            return '<div class="empty">긴급 항목 없음</div>'
+            return '<div class="empty">urgent item not found</div>'
         h = ""
         for u in urgent:
             h += (f'<div class="li"><span class="id">#{u["id"]}</span>'
                   f'<span class="nm">{esc(u["filename"][:50])}</span>'
-                  f'<span class="bg bg-r">긴급</span></div>')
+                  f'<span class="bg bg-r">urgent</span></div>')
         return h
 
     def _deadlines():
         if not deadlines:
-            return '<div class="empty">마감일 항목 없음</div>'
+            return '<div class="empty">deadline item not found</div>'
         h = ""
         for d in deadlines:
             c = "#f85149" if d["dday"] <= 3 else "#d29922" if d["dday"] <= 7 else "#3fb950"
@@ -209,7 +209,7 @@ def build_html(entities, transitions, relates):
 
     def _recent():
         if not recent_trans:
-            return '<div class="empty">전이 기록 없음</div>'
+            return '<div class="empty"> record not found</div>'
         h = ""
         for t in recent_trans:
             fc = PHASE_COLORS.get(t["from_phase"], "#8b949e")
@@ -223,8 +223,8 @@ def build_html(entities, transitions, relates):
 
     def _timeline():
         if not transitions:
-            return ('<div class="empty big">전이 기록이 없습니다.<br>'
-                    't9_seed.py transition 명령으로 상태를 전이하면 여기에 표시됩니다.</div>')
+            return ('<div class="empty big"> record .<br>'
+                    't9_seed.py transition command state   .</div>')
         h = ""
         for i, t in enumerate(transitions[:50]):
             side = "l" if i % 2 == 0 else "r"
@@ -243,8 +243,8 @@ def build_html(entities, transitions, relates):
 
     def _dispar():
         if not dispar:
-            return ('<div class="empty big">긴장(disparation) 메타데이터가 있는 엔티티가 없습니다.<br>'
-                    'metadata에 disparation.dimension_a / dimension_b를 추가하면 여기에 표시됩니다.</div>')
+            return ('<div class="empty big">Tension(disparation) metadata   .<br>'
+                    'metadata disparation.dimension_a / dimension_b add  .</div>')
         h = ""
         for d in dispar:
             h += (f'<div class="dc">'
@@ -260,8 +260,8 @@ def build_html(entities, transitions, relates):
 
     def _network():
         if not relates:
-            return ('<div class="empty big">연결(relate) 데이터가 없습니다.<br>'
-                    't9_seed.py relate &lt;id1&gt; &lt;id2&gt; 명령으로 엔티티를 연결하면 그래프가 표시됩니다.</div>')
+            return ('<div class="empty big">connection(relate)  .<br>'
+                    't9_seed.py relate &lt;id1&gt; &lt;id2&gt; command  connection  .</div>')
         nodes = {}
         for r in relates:
             nodes.setdefault(r["source_id"], r.get("source_name") or f'#{r["source_id"]}')
@@ -385,34 +385,34 @@ body{{background:#0d1117;color:#c9d1d9;font-family:system-ui,-apple-system,sans-
 <body>
 <div class="hd"><h1>T9 Dashboard</h1><span class="ts">{esc(now)}</span></div>
 <div class="tabs">
-<div class="tab on" onclick="sw('s')">상태</div>
-<div class="tab" onclick="sw('t')">타임라인</div>
-<div class="tab" onclick="sw('d')">긴장</div>
-<div class="tab" onclick="sw('n')">전도</div>
-<div class="tab" onclick="sw('k')">칸반</div>
+<div class="tab on" onclick="sw('s')">state</div>
+<div class="tab" onclick="sw('t')">Timeline</div>
+<div class="tab" onclick="sw('d')">Tension</div>
+<div class="tab" onclick="sw('n')">Transduction</div>
+<div class="tab" onclick="sw('k')">Kanban</div>
 </div>
 
 <div id="s" class="tc on">
 <div class="sr">
-<div class="sc"><div class="sn">{len(entities)}</div><div class="sl">전체 엔티티</div></div>
-<div class="sc"><div class="sn" style="color:#58a6ff">{phase_counts.get('individuating',0)}</div><div class="sl">개체화중</div></div>
-<div class="sc"><div class="sn" style="color:#3fb950">{phase_counts.get('stabilized',0)}</div><div class="sl">안정</div></div>
-<div class="sc"><div class="sn" style="color:#f85149">{len(urgent)}</div><div class="sl">긴급</div></div>
-<div class="sc"><div class="sn" style="color:#d29922">{len(transitions)}</div><div class="sl">전이 기록</div></div>
+<div class="sc"><div class="sn">{len(entities)}</div><div class="sl">Total Entities</div></div>
+<div class="sc"><div class="sn" style="color:# 58a6ff">{phase_counts.get('individuating',0)}</div><div class="sl">Individuating</div></div>
+<div class="sc"><div class="sn" style="color:#3fb950">{phase_counts.get('stabilized',0)}</div><div class="sl">Stabilized</div></div>
+<div class="sc"><div class="sn" style="color:#f85149">{len(urgent)}</div><div class="sl">urgent</div></div>
+<div class="sc"><div class="sn" style="color:# d29922">{len(transitions)}</div><div class="sl">record</div></div>
 </div>
 <div class="g2">
 <div class="cd"><div class="ct">Phase Distribution</div>{_bars()}</div>
-<div class="cd"><div class="ct">긴급 항목</div>{_urgent()}</div>
+<div class="cd"><div class="ct">urgent item</div>{_urgent()}</div>
 </div>
 <div class="g2" style="margin-top:16px">
-<div class="cd"><div class="ct">마감일 D-Day</div>{_deadlines()}</div>
-<div class="cd"><div class="ct">최근 전이</div>{_recent()}</div>
+<div class="cd"><div class="ct">deadline D-Day</div>{_deadlines()}</div>
+<div class="cd"><div class="ct">Recent Transitions</div>{_recent()}</div>
 </div>
 </div>
 
 <div id="t" class="tc"><div class="tl">{_timeline()}</div></div>
-<div id="d" class="tc"><h2 style="font-size:16px;margin-bottom:16px;color:#f0f6fc">긴장 (Disparation)</h2>{_dispar()}</div>
-<div id="n" class="tc"><h2 style="font-size:16px;margin-bottom:16px;color:#f0f6fc">전도 (Transduction)</h2>{_network()}</div>
+<div id="d" class="tc"><h2 style="font-size:16px;margin-bottom:16px;color:#f0f6fc">Tension (Disparation)</h2>{_dispar()}</div>
+<div id="n" class="tc"><h2 style="font-size:16px;margin-bottom:16px;color:# f0f6fc">(Transduction)</h2>{_network()}</div>
 <div id="k" class="tc">{_kanban()}</div>
 
 <script>

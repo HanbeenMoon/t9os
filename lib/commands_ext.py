@@ -1,10 +1,10 @@
 """
-T9 OS Seed — 확장 커맨드 모듈 (t9_seed.py 972줄→500줄 분리)
+T9 OS Seed — extended command module (split from t9_seed.py to maintain line cap)
 cmd_reflect, cmd_consolidate, cmd_watch, cmd_history, cmd_relate,
 cmd_digest_index, cmd_legacy, cmd_ingest, cmd_resurface, cmd_rebuild_fts, cmd_orphans
 
-순환 import 방지: t9_seed.py를 import하지 않는다.
-공통 의존성은 함수 인자 또는 lib.* 에서 가져온다.
+Circular import prevention: does not import t9_seed.py.
+Common dependencies come from function args or lib.*.
 """
 import sys, json, sqlite3, time, hashlib, logging
 from datetime import datetime, timedelta
@@ -15,7 +15,7 @@ from lib.config import DB_PATH
 
 _log = logging.getLogger("t9_seed")
 
-# ─── 경로 상수 (t9_seed.py와 동일, 순환 import 방지용 독립 선언) ────
+# ─── Path constants (t9_seed.py ,  import   declaration) ────────────────────────────────────────
 T9 = Path(__file__).resolve().parent.parent
 HANBEEN = T9.parent
 FIELD = T9 / "field" / "inbox"
@@ -40,39 +40,39 @@ def cmd_reflect(get_db):
     wa = (now-timedelta(days=7)).strftime("%Y-%m-%d")
     print(f"\n  === T9 Reflection ({wa} ~ {now:%Y-%m-%d}) ===\n")
     trans = conn.execute("SELECT t.*,e.filename,e.metadata FROM transitions t JOIN entities e ON t.entity_id=e.id WHERE t.timestamp>=? ORDER BY t.timestamp", (wa,)).fetchall()
-    if not trans: print("  전이 없음.\n"); conn.close(); return
+    if not trans: print("  not found.\n"); conn.close(); return
     comp = [t for t in trans if t["to_phase"]=="archived"]
     diss = [t for t in trans if t["to_phase"]=="dissolved"]
     susp = [t for t in trans if t["to_phase"]=="suspended"]
     prom = [t for t in trans if t["to_phase"] in ("individuating","stabilized","candidate_generated","tension_detected")]
-    print(f"  전이 {len(trans)}건: 완료 {len(comp)}, 폐기 {len(diss)}, 중단 {len(susp)}, 승격 {len(prom)}")
+    print(f"  {len(trans)}items: completed {len(comp)}, {len(diss)}, suspended {len(susp)}, {len(prom)}")
     if comp:
-        print("  완료:"); [print(f"    {t['filename'][:50]}") for t in comp]
+        print("  completed:"); [print(f"    {t['filename'][:50]}") for t in comp]
     if diss:
-        print("  폐기:"); [print(f"    {t['filename'][:50]} ({t['reason'] or '-'})") for t in diss]
+        print("  :"); [print(f"    {t['filename'][:50]} ({t['reason'] or '-'})") for t in diss]
     sug = []
-    if not comp: sug.append("완료 0건 -- WIP 과부하 가능성")
-    if len(prom)>=5 and not comp: sug.append("승격만 있고 완료 없음")
-    if len(diss)>=3: sug.append(f"폐기 {len(diss)}건 -- scope 축소 검토")
+    if not comp: sug.append("completed 0items -- WIP  ")
+    if len(prom)>=5 and not comp: sug.append("  completed not found")
+    if len(diss)>=3: sug.append(f" {len(diss)}items -- scope  ")
     if sug:
-        print("  제안:"); [print(f"    * {s}") for s in sug]
+        print("  suggestion:"); [print(f"    * {s}") for s in sug]
     LEARNED_PATH.parent.mkdir(parents=True, exist_ok=True)
-    entry = f"\n## 주간 반성 -- {now:%Y-%m-%d}\n- 전이: {len(trans)}건 (완료{len(comp)}/폐기{len(diss)}/중단{len(susp)})\n"
+    entry = f"\n## weekly reflection -- {now:%Y-%m-%d}\n- : {len(trans)}items (completed{len(comp)}/{len(diss)}/suspended{len(susp)})\n"
     for s in sug: entry += f"- {s}\n"
     existing = LEARNED_PATH.read_text(encoding="utf-8") if LEARNED_PATH.exists() else "# T9 LEARNED\n\n"
     LEARNED_PATH.write_bytes((existing+entry+"\n").encode("utf-8"))
-    print(f"\n  기록: {LEARNED_PATH.relative_to(T9)}\n"); conn.close()
+    print(f"\n  record: {LEARNED_PATH.relative_to(T9)}\n"); conn.close()
 
 
 def cmd_consolidate(get_db, fhash, _upsert, _preview_len):
     conn = get_db()
     print(f"\n  === T9 Memory Consolidation ===\n")
     archived = conn.execute("SELECT * FROM entities WHERE phase IN ('archived','dissolved') ORDER BY updated_at DESC").fetchall()
-    if not archived: print("  아카이브 없음.\n"); conn.close(); return
+    if not archived: print("  archive not found.\n"); conn.close(); return
     MEMORY.mkdir(parents=True, exist_ok=True)
     groups = {}
     for it in archived:
-        # 정규 컬럼 concepts 우선, fallback으로 metadata
+        # column concepts , fallbackmetadata
         concepts_list = []
         if it["concepts"]:
             try: concepts_list = json.loads(it["concepts"])
@@ -88,13 +88,13 @@ def cmd_consolidate(get_db, fhash, _upsert, _preview_len):
         ex = mp.read_text(encoding="utf-8") if mp.exists() else f"# Memory: {concept}\n\n"
         new = [i for i in items if f"<!-- eid:{i['id']} -->" not in ex]
         if not new: continue
-        sec = f"\n## 통합 -- {datetime.now():%Y-%m-%d %H:%M}\n\n"
+        sec = f"\n## Integrate -- {datetime.now():%Y-%m-%d %H:%M}\n\n"
         for i in new:
             sec += f"- <!-- eid:{i['id']} --> **{i['filename']}** ({i['phase']})\n"
             pv = (i["body_preview"] or "")[:80].replace("\n"," ")
             if pv: sec += f"  > {pv}\n"
         mp.write_bytes((ex+sec+"\n").encode("utf-8")); total += len(new)
-        print(f"  [{concept}] {len(new)}건 -> memory_{concept}.md")
+        print(f"  [{concept}] {len(new)}items -> memory_{concept}.md")
     for md in MEMORY.glob("*.md"):
         if not md.name.startswith("."):
             try:
@@ -104,11 +104,11 @@ def cmd_consolidate(get_db, fhash, _upsert, _preview_len):
             except Exception as e:
                 _log.debug("consolidate parse failed for %s: %s", md.name, e)
     conn.commit(); conn.close()
-    print(f"\n  총 {total}건 통합.\n")
+    print(f"\n  {total}items Integrate.\n")
 
 
 def cmd_watch(get_db, fhash, cmd_reindex, interval=5):
-    print(f"\n  === T9 파일 감시 ({interval}초) ===\n  Ctrl+C 종료\n")
+    print(f"\n  === T9 file monitoring ({interval}) ===\n  Ctrl+C end\n")
     def hmap():
         hm = {}
         for sd in SCAN_DIRS:
@@ -125,35 +125,35 @@ def cmd_watch(get_db, fhash, cmd_reindex, interval=5):
         while True:
             time.sleep(interval); curr = hmap(); ch = False
             for p,h in curr.items():
-                if p not in prev or prev[p]!=h: print(f"  [변경] {p}"); ch=True
+                if p not in prev or prev[p]!=h: print(f"  [change] {p}"); ch=True
             for p in prev:
-                if p not in curr: print(f"  [삭제] {p}"); ch=True
+                if p not in curr: print(f"  [delete] {p}"); ch=True
             if ch: cmd_reindex()
             prev = curr
-    except KeyboardInterrupt: print("\n  감시 종료.\n")
+    except KeyboardInterrupt: print("\n  monitoring end.\n")
 
 
 def cmd_history(get_db, eid):
     conn = get_db()
     row = conn.execute("SELECT * FROM entities WHERE id=?", (eid,)).fetchone()
-    if not row: print(f"  ID {eid} 없음"); conn.close(); return
-    print(f"\n  === 전이 이력: [{eid}] {row['filename']} ===")
-    print(f"  현재: {row['phase']}  경로: {row['filepath']}")
+    if not row: print(f"  ID {eid} not found"); conn.close(); return
+    print(f"\n  === transition history: [{eid}] {row['filename']} ===")
+    print(f"  current: {row['phase']}  path: {row['filepath']}")
     if row["created_at"]:
-        print(f"  생성: {row['created_at'][:16]}")
+        print(f"  Created: {row['created_at'][:16]}")
     if row["parent_id"]:
-        print(f"  부모: [{row['parent_id']}]")
+        print(f"  : [{row['parent_id']}]")
     if row["urgency"]:
-        print(f"  긴급: {row['urgency']}")
+        print(f"  Urgent: {row['urgency']}")
     if row["concepts"]:
         try:
             c = json.loads(row["concepts"])
-            print(f"  개념: {', '.join(c)}")
+            print(f"  Concepts: {', '.join(c)}")
         except Exception: pass
     m = json.loads(row["metadata"]) if row["metadata"] else {}
     rel = m.get("related_to", [])
-    if rel: print(f"  연결 (metadata): {rel}")
-    # relates 테이블에서도 조회
+    if rel: print(f"  connection (metadata): {rel}")
+    # relates tablequery
     rels = conn.execute(
         "SELECT r.*, e1.filename as src_name, e2.filename as tgt_name "
         "FROM relates r "
@@ -162,7 +162,7 @@ def cmd_history(get_db, eid):
         "WHERE r.source_id=? OR r.target_id=?", (eid, eid)
     ).fetchall()
     if rels:
-        print(f"  관계 (transduction):")
+        print(f"  (transduction):")
         for r in rels:
             arrow = "\u2192" if r["direction"] == "source_to_target" else "\u2194"
             desc = f" ({r['description']})" if r["description"] else ""
@@ -172,23 +172,23 @@ def cmd_history(get_db, eid):
         print()
         for t in ts:
             print(f"  {t['timestamp'][:16]}  {t['from_phase'] or '(start)'} -> {t['to_phase']}")
-            if t["reason"]: print(f"                    사유: {t['reason']}")
-    else: print("\n  전이 이력 없음.")
+            if t["reason"]: print(f"                    reason: {t['reason']}")
+    else: print("\n  transition history not found.")
     print(); conn.close()
 
 
 def cmd_relate(get_db, self_check, id1, id2, direction="bidirectional", description=""):
-    """엔티티 연결. transduction 기록 (방향성 지원).
+    """entity relation. transduction record ().
 
     direction: "bidirectional" | "source_to_target" (id1->id2)
-    description: "A의 패턴이 B의 원리가 됨" 같은 설명
+    description: "A pattern B  "  
     """
     conn = get_db()
     for eid in (id1, id2):
         row = conn.execute("SELECT id FROM entities WHERE id=?", (eid,)).fetchone()
-        if not row: print(f"  ID {eid} 없음"); conn.close(); return
+        if not row: print(f"  ID {eid} not found"); conn.close(); return
 
-    # relates 테이블에 기록 (transduction)
+    # relates tablerecord (transduction)
     try:
         conn.execute(
             "INSERT OR REPLACE INTO relates (source_id, target_id, direction, description, created_at) "
@@ -202,7 +202,7 @@ def cmd_relate(get_db, self_check, id1, id2, direction="bidirectional", descript
             (direction, description, datetime.now().isoformat(), id1, id2)
         )
 
-    # 양방향이면 역방향도 기록
+    # record
     if direction == "bidirectional":
         try:
             conn.execute(
@@ -213,7 +213,7 @@ def cmd_relate(get_db, self_check, id1, id2, direction="bidirectional", descript
         except Exception as e:
             _log.debug("reverse relate failed: %s", e)
 
-    # 기존 metadata의 related_to도 유지 (호환성)
+    # existing metadatarelated_to(compatibility)
     for eid, other in [(id1,id2),(id2,id1)]:
         row = conn.execute("SELECT * FROM entities WHERE id=?", (eid,)).fetchone()
         m = json.loads(row["metadata"]) if row["metadata"] else {}
@@ -230,11 +230,11 @@ def cmd_relate(get_db, self_check, id1, id2, direction="bidirectional", descript
     conn.commit(); conn.close()
     arrow = "\u2192" if direction == "source_to_target" else "\u2194"
     desc_str = f" ({description})" if description else ""
-    print(f"  연결: [{id1}] {arrow} [{id2}]{desc_str}\n")
+    print(f"  connection: [{id1}] {arrow} [{id2}]{desc_str}\n")
 
 
 def cmd_digest_index(get_db, fhash, _upsert, _preview_len):
-    """다이제스트 파일들을 FTS에 인덱싱"""
+    """fileFTS"""
     conn = get_db()
     digest_dirs = [
         HANBEEN / "_legacy" / "_notion_dump" / "digested_final",
@@ -243,7 +243,7 @@ def cmd_digest_index(get_db, fhash, _upsert, _preview_len):
     count = 0
     for ddir in digest_dirs:
         if not ddir.exists():
-            print(f"  [SKIP] {ddir} 없음")
+            print(f"  [SKIP] {ddir} not found")
             continue
         src_label = str(ddir.parent.name)
         for f in sorted(ddir.glob("*.txt")):
@@ -253,19 +253,19 @@ def cmd_digest_index(get_db, fhash, _upsert, _preview_len):
                        json.dumps({"source": "digest", "type": src_label}, ensure_ascii=False),
                        body[:_preview_len(f, body)], fhash(f), full_body=body):
                 count += 1
-        print(f"  [{src_label}] 스캔 완료")
+        print(f"  [{src_label}] completed")
     conn.commit(); conn.close()
-    print(f"  다이제스트 {count}건 인덱싱 완료")
+    print(f"  {count}items completed")
 
 
 def cmd_legacy(query):
-    if not LEGACY_DB.exists(): print(f"  레거시 DB 없음"); return
+    if not LEGACY_DB.exists(): print(f"  DB not found"); return
     conn = sqlite3.connect(str(LEGACY_DB)); conn.row_factory = sqlite3.Row
     rs = conn.execute("SELECT id,path,name,ext,dir,content_summary,ai_tags FROM files WHERE name LIKE ? OR path LIKE ? OR content_summary LIKE ? OR ai_tags LIKE ? ORDER BY modified DESC LIMIT 20",
         (f"%{query}%",)*4).fetchall()
-    if not rs: print(f"  레거시 결과 없음: '{query}'")
+    if not rs: print(f"  result not found: '{query}'")
     else:
-        print(f"\n  === 레거시: '{query}' ({len(rs)}건) ===\n")
+        print(f"\n  === : '{query}' ({len(rs)}items) ===\n")
         for r in rs:
             print(f"  [{r['id']:4d}] {r['name'][:40]:40s} | {r['dir'] or '-'}")
             s = (r["content_summary"] or "")[:60].replace("\n"," ")
@@ -274,44 +274,44 @@ def cmd_legacy(query):
 
 
 def cmd_ingest(cmd_capture, filepath):
-    """카톡/메모 원본 파일을 파싱해서 핵심 아이디어를 개별 전개체로 등록."""
+    """/original filePreindividualregister."""
     import shutil
     fp = Path(filepath)
     if not fp.exists():
-        print(f'  파일 없음: {filepath}'); return
-    # 1. 원본을 inbox로 복사
+        print(f'  file not found: {filepath}'); return
+    # 1. originalinboxcopy
     dest = FIELD / fp.name
     if not dest.exists():
         shutil.copy2(str(fp), str(dest))
-        print(f'  원본 저장: {dest.name}')
-    # 2. 파싱 — [이름] [시간] 메시지 형식
+        print(f'  original save: {dest.name}')
+    # 2. — [name] [] message format
     text = fp.read_text(encoding='utf-8', errors='replace')
     messages = []
     for line in text.split(chr(10)):
         line = line.strip()
         if not line or line.startswith('---') or line == '\u3161': continue
-        # [문 한빈] [시간] 내용 패턴
+        # [] [] content pattern
         if '] ' in line:
             parts = line.split('] ', 2)
             if len(parts) >= 3:
                 msg = parts[-1].strip()
-                if len(msg) > 15 and not msg.startswith('사진'):
+                if len(msg) > 15 and not msg.startswith(''):
                     messages.append(msg)
             elif len(parts) == 2:
                 msg = parts[-1].strip()
-                if len(msg) > 15 and not msg.startswith('사진'):
+                if len(msg) > 15 and not msg.startswith(''):
                     messages.append(msg)
-    # 3. 의미 있는 메시지만 전개체 등록
+    # 3. messagePreindividual register
     count = 0
     for msg in messages:
-        if len(msg) > 20:  # 너무 짧은 건 스킵
+        if len(msg) > 20:  # items
             cmd_capture(msg)
             count += 1
-    print(f'  {count}건 전개체 등록 완료 (원본 {len(messages)}건 중)')
+    print(f'  {count}items Preindividual register completed (original {len(messages)}items )')
 
 
 def cmd_resurface(get_db, keyword=""):
-    """침전(sediment) 상태 엔티티를 발굴. 키워드 없으면 랜덤 3~5개, 있으면 키워드 검색."""
+    """Sediment(sediment) state . key3~5, keysearch."""
     import random
     conn = get_db()
     if keyword:
@@ -327,9 +327,9 @@ def cmd_resurface(get_db, keyword=""):
         count = min(max(3, len(all_sed)), 5) if all_sed else 0
         results = random.sample(list(all_sed), count) if count else []
     if not results:
-        print("  침전 엔티티 없음." + (f" (키워드: {keyword})" if keyword else ""))
+        print("  Sediment not found." + (f" (key: {keyword})" if keyword else ""))
         conn.close(); return
-    print(f"\n  === 침전 발굴 (resurface) ===" + (f" 키워드: {keyword}" if keyword else " 랜덤") + f" ({len(results)}건)\n")
+    print(f"\n  === Sediment (resurface) ===" + (f" key: {keyword}" if keyword else " ") + f" ({len(results)}items)\n")
     for r in results:
         preview = (r["body_preview"] or "")[:80].replace("\n", " ")
         tags = ""
@@ -338,22 +338,22 @@ def cmd_resurface(get_db, keyword=""):
             except Exception: pass
         print(f"  [{r['id']:3d}] {r['filename'][:50]}")
         if preview: print(f"         {preview}")
-        if tags: print(f"         개념: {tags}")
-        print(f"         최종: {(r['updated_at'] or '')[:10]}")
+        if tags: print(f"         Concepts: {tags}")
+        print(f"         final: {(r['updated_at'] or '')[:10]}")
         print()
-    print("  발굴하려면: python3 t9_seed.py transition <id> reactivated\n")
+    print("  : python3 t9_seed.py transition <id> reactivated\n")
     conn.close()
 
 
 def cmd_rebuild_fts(get_db):
-    """FTS5 인덱스를 완전 재구축. 검색 결과 누락 시 사용."""
+    """FTS5 index. search result missing use."""
     conn = get_db()
-    print("  FTS5 인덱스 재구축 시작...")
+    print("  FTS5 index start...")
     try:
         conn.execute("DROP TABLE IF EXISTS entities_fts")
         conn.execute("CREATE VIRTUAL TABLE entities_fts USING fts5(filename, body_preview, metadata_text)")
     except Exception as e:
-        print(f"  [ERROR] FTS5 테이블 재생성 실패: {e}")
+        print(f"  [ERROR] FTS5 table create failed: {e}")
         conn.close(); return
     rows = conn.execute("SELECT id, filename, body_preview, metadata FROM entities").fetchall()
     count = 0
@@ -366,11 +366,11 @@ def cmd_rebuild_fts(get_db):
         except Exception as e:
             _log.debug("FTS rebuild skip [%d] %s: %s", r["id"], r["filename"], e)
     conn.commit(); conn.close()
-    print(f"  FTS5 재구축 완료: {count}/{len(rows)}건 인덱싱")
+    print(f"  FTS5 completed: {count}/{len(rows)}items ")
 
 
 def cmd_orphans(get_db):
-    """파일이 사라진 고아 엔티티를 찾아 보고. --fix 옵션으로 sediment 전이."""
+    """filereport. --fix sediment ."""
     fix = "--fix" in sys.argv
     conn = get_db()
     rows = conn.execute("SELECT id, filepath, filename, phase FROM entities WHERE filepath IS NOT NULL AND filepath != ''").fetchall()
@@ -381,26 +381,26 @@ def cmd_orphans(get_db):
             continue
         fp = T9 / r["filepath"]
         if not fp.exists():
-            # HANBEEN 기준으로도 시도
+            # HANBEEN criteria
             fp2 = HANBEEN / r["filepath"]
             if not fp2.exists():
                 orphans.append(r)
     if corrupted:
-        print(f"\n  === DB 오염 {len(corrupted)}건 (filepath가 정수) ===")
+        print(f"\n  === DB {len(corrupted)}items (filepath) ===")
         for r in corrupted:
             print(f"  [{r['id']:4d}] filepath={repr(r['filepath'])}")
         if fix:
             for r in corrupted:
                 conn.execute("DELETE FROM entities WHERE id=?", (r["id"],))
             conn.commit()
-            print(f"  {len(corrupted)}건 삭제 완료")
+            print(f"  {len(corrupted)}items delete completed")
     if not orphans:
-        print("  고아 엔티티 없음 (모든 파일 존재 확인)")
+        print("  not found (file check)")
     else:
-        print(f"\n  === 고아 엔티티 {len(orphans)}건 (파일 없음) ===\n")
+        print(f"\n  === {len(orphans)}items (file not found) ===\n")
         for r in orphans:
             print(f"  [{r['id']:4d}] {r['phase']:15s} | {r['filename'][:50]}")
-            print(f"         경로: {r['filepath']}")
+            print(f"         path: {r['filepath']}")
         if fix:
             for r in orphans:
                 conn.execute("UPDATE entities SET phase='sediment', updated_at=? WHERE id=?",
@@ -408,7 +408,7 @@ def cmd_orphans(get_db):
                 conn.execute("INSERT INTO transitions (entity_id,from_phase,to_phase,timestamp,reason) VALUES(?,?,?,?,?)",
                     (r["id"], r["phase"], "sediment", datetime.now().isoformat(), "orphan: file missing"))
             conn.commit()
-            print(f"\n  {len(orphans)}건 → sediment 전이 완료")
+            print(f"\n  {len(orphans)}items → sediment completed")
         else:
-            print(f"\n  --fix 옵션으로 sediment 전이 가능: python3 t9_seed.py orphans --fix")
+            print(f"\n  --fix sediment : python3 t9_seed.py orphans --fix")
     conn.close()
